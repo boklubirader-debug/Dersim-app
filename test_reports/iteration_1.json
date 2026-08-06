@@ -1,0 +1,30 @@
+{
+  "summary": "First-finish smoke test of Turkish study companion (dersim). Backend auth + courses + links + reorder verified via curl. Frontend end-to-end flow: register -> auto-login -> create courses (2) -> tabs (PDF/Links/Notes) -> add link -> notes autosave indicator -> logout -> re-login -> courses persist. All primary flows working.",
+  "tested_scope": ["frontend", "backend", "auth", "integration"],
+  "passed": [
+    "GET / returns 200",
+    "POST /api/auth/login admin returns 200 with session cookie",
+    "GET /api/auth/me returns authenticated user",
+    "POST /api/auth/register creates new user",
+    "POST /api/courses creates course (position auto-assigned)",
+    "GET /api/courses lists user courses",
+    "POST /api/courses/reorder with {ordered_ids:[...]} returns {ok:true}",
+    "POST /api/courses/{id}/links creates link",
+    "DELETE /api/courses/{id} cascade returns {ok:true}",
+    "UI register auto-logs into dashboard",
+    "UI create course via sidebar appears in list",
+    "UI Tabs PDFler/Linkler/Notlar switch content",
+    "UI add link via link-form shows in list",
+    "UI Notes textarea triggers save-indicator-saved (autosave)",
+    "UI PDF dropzone renders on PDFler tab",
+    "UI logout returns to /login (cookies cleared)",
+    "UI existing-user login redirects to dashboard",
+    "Courses persist across logout/login (session + DB)"
+  ],
+  "failed": [],
+  "action_items": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "retest_needed": false,
+  "full_testing_deferred": true,
+  "notes": "Did NOT test: PDF file upload (Emergent object storage) with a real PDF file, PDF open/download, PDF soft-delete, drag-and-drop reorder via UI (verified reorder API directly with valid payload {ordered_ids} matching frontend usage in CourseSidebar.jsx line 109), inline course rename, course delete confirm from UI, unauthenticated redirect from /, logged-in redirect from /login. These can be covered in full testing pass. Client-side auto-prefixes URL with https:// (CourseDetail.jsx line 269) — backend stores raw url."
+}
