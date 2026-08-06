@@ -1,0 +1,94 @@
+{
+  "theme": "light",
+  "archetype": "Pastel & Soft (Neo-Brutalist Student Vibe)",
+  "typography": {
+    "heading_font": "Cabinet Grotesk",
+    "body_font": "Satoshi",
+    "hierarchy": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl tracking-tighter font-black text-[#1A1A1A]",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl tracking-tight font-bold text-[#1A1A1A]",
+      "h3": "text-xl sm:text-2xl font-semibold text-[#1A1A1A]",
+      "body": "text-base leading-relaxed text-[#1A1A1A]",
+      "labels": "text-xs tracking-[0.2em] uppercase font-bold text-[#4B5563]"
+    }
+  },
+  "colors": {
+    "background": "#FDFBF7",
+    "surface": "#FFFFFF",
+    "border": "#1A1A1A",
+    "primary": "#FFE37E",
+    "secondary": "#A7E8D0",
+    "accent": "#D0C9FF",
+    "text_primary": "#1A1A1A",
+    "text_secondary": "#4B5563"
+  },
+  "visual_enhancers": {
+    "borders": "Thick 2px solid borders (#1A1A1A) on all cards, inputs, and buttons.",
+    "shadows": "Sharp, neo-brutalist solid shadows: shadow-[4px_4px_0px_#1A1A1A]. On hover, shadow shifts to shadow-[2px_2px_0px_#1A1A1A] and the element translates down and right.",
+    "textures": "Keep the background solid but use paper-like off-white (#FDFBF7) to reduce eye strain.",
+    "radii": "Small rounded corners (rounded-md or 6px) to maintain a structured yet friendly feel."
+  },
+  "components": {
+    "cards": "White surface, 2px solid black border, 4px solid black drop shadow. No soft blur shadows.",
+    "buttons": "Pill-shaped or slightly rounded. Primary button uses Butter Yellow (#FFE37E) with black text and border. Hover state translates down and right, shadow reduces.",
+    "tabs": "Neo-brutalist active tab uses a pastel background (e.g., Pale mint #A7E8D0) with a heavy bottom border or full border + shadow.",
+    "drag_drop_zone": "Dashed 2px black border with pastel background tint (#F9FAFB or very light mint). Highly visible drop text.",
+    "inputs": "Solid white background, 2px black border, focus state uses an accent color (lavender #D0C9FF) ring or thick border.",
+    "list_items": "Draggable queue items use crisp borders and a drag handle icon (six dots). Active dragged item has a heavier shadow."
+  },
+  "layouts": {
+    "dashboard_grid": "Bento-style layout for the dashboard. A left sidebar for the study queue (lessons list), and a large main content area for the tabbed view (PDF, Notes, Links).",
+    "spacing": "Generous spacing. p-6 or p-8 inside main containers. gap-6 or gap-8 between grid items.",
+    "alignment": "Left-aligned content for optimal reading focus. Never center paragraph text."
+  },
+  "motion": {
+    "interactions": "Hover states on cards and buttons: translate-x-[2px] translate-y-[2px] and shadow reduces to [2px_2px_0px_#1A1A1A].",
+    "transitions": "Use specific properties: transition-transform duration-200, transition-shadow duration-200. Do NOT use 'transition-all'."
+  },
+  "accessibility": {
+    "contrast": "Black text on pastel backgrounds provides high contrast. Ensure placeholder text in inputs meets 4.5:1 ratio.",
+    "focus": "focus:outline-none focus:ring-2 focus:ring-[#1A1A1A] focus:ring-offset-2 focus:ring-offset-[#FDFBF7]",
+    "testing": "All interactive elements MUST have `data-testid` attribute."
+  },
+  "media": {
+    "icons": "Phosphor Icons (Duotone or Bold) for a playful, distinct look. Installation: `yarn add @phosphor-icons/react`",
+    "image_urls": [
+      {
+        "url": "https://images.pexels.com/photos/29474097/pexels-photo-29474097.jpeg",
+        "category": "login_illustration",
+        "description": "Abstract pastel geometric shapes, perfect for the login screen side panel."
+      },
+      {
+        "url": "https://images.pexels.com/photos/771317/pexels-photo-771317.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "category": "empty_state_study",
+        "description": "A student focusing at a desk, ideal for empty states when no PDF is uploaded."
+      }
+    ]
+  },
+  "3d_libraries": null,
+  "instructions_to_main_agent": [
+    "Build the UI in Turkish.",
+    "Implement auth screens (Login/Register) using the geometry pastel image as a side panel.",
+    "Implement a Dashboard with a drag-and-drop Sidebar for the study queue ('Ders Sırası').",
+    "In the main area, implement a Tabbed view ('PDFler', 'Linkler', 'Notlar').",
+    "For the PDF tab, create a drag-and-drop upload zone and a list/thumbnail view of uploaded PDFs.",
+    "For the Links tab, create a form to save URL, Title, and Description, and display saved links in neo-brutalist cards.",
+    "Ensure 'Otomatik Kaydedildi' (Auto-saved) indicator is visible, perhaps in the header next to user profile.",
+    "All interactive elements MUST have `data-testid` (e.g., `data-testid='login-button'`).",
+    "DO NOT use generic centered layouts. Use a clear sidebar + main content structure.",
+    "Apply the neo-brutalist shadow classes: `shadow-[4px_4px_0px_#1A1A1A]` for cards.",
+    "Add `@phosphor-icons/react` for icons."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You MUST NOT apply universal transition. Eg: `transition: all`. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+    "You MUST NOT center align the app container, ie do not add `.App { text-align: center; }` in the css file. This disrupts the human natural reading flow of text",
+    "NEVER use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Main agent relies on these image URLs. Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN",
+    "Prioritize using pre-existing components from src/components/ui when applicable",
+    "Use `sonner` for toasts",
+    "Create a clean code structure keeping components modular."
+  ]
+}
