@@ -3,6 +3,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import CourseSidebar from "../components/CourseSidebar";
 import CourseDetail from "../components/CourseDetail";
+import ExamCountdown from "../components/ExamCountdown";
 import { toast } from "sonner";
 import { BookOpen, SignOut } from "@phosphor-icons/react";
 
@@ -62,6 +63,7 @@ export default function Dashboard() {
             </header>
 
             <main className="max-w-[1400px] mx-auto px-4 md:px-8 py-8">
+                <ExamCountdown />
                 {loading ? (
                     <div className="text-center text-neutral-500 py-20">Yükleniyor...</div>
                 ) : (

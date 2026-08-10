@@ -138,6 +138,7 @@ class CourseUpdate(BaseModel):
     name: Optional[str] = None
     color: Optional[str] = None
     notes: Optional[str] = None
+    completed: Optional[bool] = None
 
 class LinkIn(BaseModel):
     title: str
@@ -160,6 +161,7 @@ def course_out(doc):
         "color": doc.get("color", "#FFE37E"),
         "notes": doc.get("notes", ""),
         "position": doc.get("position", 0),
+        "completed": bool(doc.get("completed", False)),
         "created_at": doc.get("created_at"),
         "updated_at": doc.get("updated_at"),
     }

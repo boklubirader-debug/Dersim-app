@@ -13,13 +13,13 @@ import {
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { DotsSixVertical, Plus, Trash, PencilSimple, BookOpen } from "@phosphor-icons/react";
+import { DotsSixVertical, Plus, Trash, PencilSimple, BookOpen, CheckSquare, Square } from "@phosphor-icons/react";
 import { api } from "../lib/api";
 import { toast } from "sonner";
 
 const COLORS = ["#FFE37E", "#A7E8D0", "#D0C9FF", "#FFC9B5", "#B5E0FF", "#FFB5D8"];
 
-function SortableCourseItem({ course, active, onSelect, onDelete, onRename, index }) {
+function SortableCourseItem({ course, active, onSelect, onDelete, onRename, onToggleComplete, index }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: course.id });
     const [editing, setEditing] = useState(false);
     const [name, setName] = useState(course.name);
@@ -41,7 +41,7 @@ function SortableCourseItem({ course, active, onSelect, onDelete, onRename, inde
             ref={setNodeRef}
             style={style}
             data-testid={`course-item-${course.id}`}
-            className={`group brut-card flex items-center gap-2 p-3 cursor-pointer transition-transform duration-150 ${active ? "translate-x-[2px] translate-y-[2px]" : ""}`}
+            className={`group brut-card flex items-center gap-2 p-3 cursor-pointer transition-transform duration-150 ${active ? "translate-x-[2px] translate-y-[2px]" : ""} ${course.completed ? "opacity-70" : ""}`}
         >
             <button
                 {...attributes}
@@ -51,6 +51,19 @@ function SortableCourseItem({ course, active, onSelect, onDelete, onRename, inde
                 aria-label="Sürükle"
             >
                 <DotsSixVertical size={20} weight="bold" />
+            </button>
+            <button
+                onClick={(e) => { e.stopPropagation(); onToggleComplete(course); }}
+                className="shrink-0"
+                data-testid={`course-complete-${course.id}`}
+                aria-label={course.completed ? "Tamamlandı olarak işaretle kaldır" : "Tamamlandı olarak işaretle"}
+                title={course.completed ? "Tamamlandı" : "Tamamlanmadı"}
+            >
+                {course.completed ? (
+                    <CheckSquare size={22} weight="fill" style={{color: "#16A34A"}} />
+                ) : (
+                    <Square size={22} weight="bold" />
+                )}
             </button>
             <div
                 className="w-8 h-8 rounded-md brut-border flex items-center justify-center shrink-0 text-sm font-black"
@@ -70,7 +83,7 @@ function SortableCourseItem({ course, active, onSelect, onDelete, onRename, inde
                         data-testid={`course-rename-input-${course.id}`}
                     />
                 ) : (
-                    <div className="font-bold truncate">{course.name}</div>
+                    <div className={`font-bold truncate ${course.completed ? "line-through decoration-2" : ""}`}>{course.name}</div>
                 )}
             </div>
             <button
@@ -149,6 +162,22 @@ export default function CourseSidebar({ courses, activeCourseId, onSelect, onCha
         }
     };
 
+    const toggleComplete = async (course) => {
+        const next = !course.completed;
+        onChange(courses.map((c) => (c.id === course.id ? { ...c, completed: next } : c)));
+        try {
+            const { data } = await api.patch(`/courses/${course.id}`, { completed: next });
+            onChange(courses.map((c) => (c.id === course.id ? data : c)));
+            if (next) toast.success("Ders tamamlandı olarak işaretlendi", { duration: 1200 });
+        } catch {
+            onChange(courses.map((c) => (c.id === course.id ? { ...c, completed: !next } : c)));
+            toast.error("Durum güncellenemedi");
+        }
+    };
+
+    const completedCount = courses.filter((c) => c.completed).length;
+    const progress = courses.length ? Math.round((completedCount / courses.length) * 100) : 0;
+
     return (
         <aside className="w-full lg:w-80 shrink-0" data-testid="course-sidebar">
             <div className="flex items-center justify-between mb-4">
@@ -159,7 +188,23 @@ export default function CourseSidebar({ courses, activeCourseId, onSelect, onCha
                     </h2>
                 </div>
             </div>
-            <p className="text-xs text-neutral-600 mb-3">Sürükleyip bırakarak sırayı değiştir. Üstteki, sıradaki ders.</p>
+            {courses.length > 0 && (
+                <div className="mb-3 brut-card p-3 flex items-center gap-3" data-testid="course-progress">
+                    <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs uppercase tracking-widest font-bold text-neutral-600">İlerleme</span>
+                            <span className="text-xs font-bold">{completedCount}/{courses.length} · {progress}%</span>
+                        </div>
+                        <div className="h-2 border-2 border-black rounded-full overflow-hidden bg-white">
+                            <div
+                                className="h-full transition-[width] duration-300"
+                                style={{ width: `${progress}%`, background: "#A7E8D0" }}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+            <p className="text-xs text-neutral-600 mb-3">Sürükleyip sırala. Kutucuğu işaretle: tamamlandı.</p>
 
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={courses.map((c) => c.id)} strategy={verticalListSortingStrategy}>
@@ -173,6 +218,7 @@ export default function CourseSidebar({ courses, activeCourseId, onSelect, onCha
                                 onSelect={onSelect}
                                 onDelete={deleteCourse}
                                 onRename={renameCourse}
+                                onToggleComplete={toggleComplete}
                             />
                         ))}
                     </div>
