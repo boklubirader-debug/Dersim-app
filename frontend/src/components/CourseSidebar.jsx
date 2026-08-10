@@ -175,36 +175,17 @@ export default function CourseSidebar({ courses, activeCourseId, onSelect, onCha
         }
     };
 
-    const completedCount = courses.filter((c) => c.completed).length;
-    const progress = courses.length ? Math.round((completedCount / courses.length) * 100) : 0;
-
     return (
         <aside className="w-full lg:w-80 shrink-0" data-testid="course-sidebar">
             <div className="flex items-center justify-between mb-4">
                 <div>
-                    <p className="text-xs tracking-[0.2em] uppercase font-bold text-neutral-500">Ders Sırası</p>
+                    <p className="text-xs tracking-[0.2em] uppercase font-bold text-muted">Ders Sırası</p>
                     <h2 className="font-display text-2xl font-black flex items-center gap-2">
                         <BookOpen size={22} weight="duotone" /> Sıradaki dersler
                     </h2>
                 </div>
             </div>
-            {courses.length > 0 && (
-                <div className="mb-3 brut-card p-3 flex items-center gap-3" data-testid="course-progress">
-                    <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs uppercase tracking-widest font-bold text-neutral-600">İlerleme</span>
-                            <span className="text-xs font-bold">{completedCount}/{courses.length} · {progress}%</span>
-                        </div>
-                        <div className="h-2 border-2 border-black rounded-full overflow-hidden bg-white">
-                            <div
-                                className="h-full transition-[width] duration-300"
-                                style={{ width: `${progress}%`, background: "#A7E8D0" }}
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
-            <p className="text-xs text-neutral-600 mb-3">Sürükleyip sırala. Kutucuğu işaretle: tamamlandı.</p>
+            <p className="text-xs text-muted mb-3">Sürükleyip sırala. Kutucuğu işaretle: tamamlandı.</p>
 
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={courses.map((c) => c.id)} strategy={verticalListSortingStrategy}>

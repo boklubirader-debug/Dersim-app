@@ -6,23 +6,42 @@
 
 :root {
     --paper: #FDFBF7;
+    --surface: #FFFFFF;
     --ink: #1A1A1A;
+    --text: #1A1A1A;
+    --muted: #4B5563;
+    --muted-bg: #F5F1E8;
     --butter: #FFE37E;
     --mint: #A7E8D0;
     --lavender: #D0C9FF;
     --peach: #FFC9B5;
-    --muted: #4B5563;
+    --shadow-color: #1A1A1A;
+    --grid-color: rgba(26, 26, 26, 0.04);
 }
+
+html.dark {
+    --paper: #14141A;
+    --surface: #1E1E26;
+    --ink: #FAFAFA;
+    --text: #FAFAFA;
+    --muted: #A1A1AA;
+    --muted-bg: #262632;
+    --shadow-color: #FAFAFA;
+    --grid-color: rgba(250, 250, 250, 0.05);
+    color-scheme: dark;
+}
+
+* { border-color: var(--ink); }
 
 body {
     margin: 0;
     background: var(--paper);
-    color: var(--ink);
+    color: var(--text);
     font-family: 'DM Sans', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
-    background-image:
-        radial-gradient(rgba(26,26,26,0.04) 1px, transparent 1px);
+    background-image: radial-gradient(var(--grid-color) 1px, transparent 1px);
     background-size: 22px 22px;
+    transition: background-color 200ms ease, color 200ms ease;
 }
 
 .font-display {
@@ -30,50 +49,62 @@ body {
     letter-spacing: -0.02em;
 }
 
+.text-muted { color: var(--muted); }
+.bg-paper { background: var(--paper); }
+.bg-surface { background: var(--surface); }
+
 .brut-border { border: 2px solid var(--ink); }
-.brut-shadow { box-shadow: 4px 4px 0 0 var(--ink); }
-.brut-shadow-sm { box-shadow: 2px 2px 0 0 var(--ink); }
-.brut-shadow-lg { box-shadow: 6px 6px 0 0 var(--ink); }
+.brut-shadow { box-shadow: 4px 4px 0 0 var(--shadow-color); }
+.brut-shadow-sm { box-shadow: 2px 2px 0 0 var(--shadow-color); }
+.brut-shadow-lg { box-shadow: 6px 6px 0 0 var(--shadow-color); }
 
 .brut-btn {
     border: 2px solid var(--ink);
-    box-shadow: 4px 4px 0 0 var(--ink);
+    box-shadow: 4px 4px 0 0 var(--shadow-color);
+    color: var(--text);
+    background: var(--surface);
     transition-property: transform, box-shadow, background-color;
     transition-duration: 150ms;
 }
 .brut-btn:hover:not(:disabled) {
     transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 0 var(--ink);
+    box-shadow: 2px 2px 0 0 var(--shadow-color);
 }
 .brut-btn:active:not(:disabled) {
     transform: translate(4px, 4px);
-    box-shadow: 0 0 0 0 var(--ink);
+    box-shadow: 0 0 0 0 var(--shadow-color);
 }
 .brut-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .brut-card {
-    background: #FFFFFF;
+    background: var(--surface);
     border: 2px solid var(--ink);
-    box-shadow: 4px 4px 0 0 var(--ink);
+    box-shadow: 4px 4px 0 0 var(--shadow-color);
     border-radius: 8px;
+    color: var(--text);
 }
 
 .brut-input {
-    background: #FFFFFF;
+    background: var(--surface);
     border: 2px solid var(--ink);
     border-radius: 6px;
     padding: 0.65rem 0.9rem;
     font-family: inherit;
     font-size: 0.95rem;
-    color: var(--ink);
+    color: var(--text);
     width: 100%;
     outline: none;
     transition: box-shadow 150ms;
 }
 .brut-input:focus {
-    box-shadow: 3px 3px 0 0 var(--ink);
+    box-shadow: 3px 3px 0 0 var(--shadow-color);
 }
-.brut-input::placeholder { color: #9CA3AF; }
+.brut-input::placeholder { color: var(--muted); opacity: 0.7; }
+
+/* datetime-local calendar icon in dark mode */
+html.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
 
 .tag-pill {
     display: inline-flex;
@@ -86,12 +117,12 @@ body {
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    background: #fff;
+    background: var(--surface);
+    color: var(--text);
 }
 
 .dragging { opacity: 0.6; }
 
-/* scrollbar */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--ink); border-radius: 999px; border: 2px solid var(--paper); }
@@ -119,8 +150,23 @@ body {
         --ring: 0 0% 10%;
         --radius: 0.5rem;
     }
-}
-
-@layer base {
-    * { border-color: hsl(var(--border)); }
+    html.dark {
+        --background: 240 10% 8%;
+        --foreground: 0 0% 98%;
+        --card: 240 8% 14%;
+        --card-foreground: 0 0% 98%;
+        --popover: 240 8% 14%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 0 0% 98%;
+        --primary-foreground: 0 0% 10%;
+        --secondary: 240 6% 18%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 240 6% 20%;
+        --muted-foreground: 0 0% 65%;
+        --accent: 251 30% 30%;
+        --accent-foreground: 0 0% 98%;
+        --border: 0 0% 98%;
+        --input: 0 0% 98%;
+        --ring: 0 0% 98%;
+    }
 }

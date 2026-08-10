@@ -23,8 +23,24 @@ function useDebouncedSave(callback, delay = 700) {
     }, [callback, delay]);
 }
 
+const LAST_TAB_KEY = "dersim.lastTab.v1";
+function loadLastTab(courseId) {
+    try {
+        const obj = JSON.parse(localStorage.getItem(LAST_TAB_KEY) || "{}");
+        const t = obj[courseId];
+        return t === "pdfs" || t === "links" || t === "notes" ? t : "pdfs";
+    } catch { return "pdfs"; }
+}
+function saveLastTab(courseId, tab) {
+    try {
+        const obj = JSON.parse(localStorage.getItem(LAST_TAB_KEY) || "{}");
+        obj[courseId] = tab;
+        localStorage.setItem(LAST_TAB_KEY, JSON.stringify(obj));
+    } catch {}
+}
+
 export default function CourseDetail({ course, onCourseUpdate }) {
-    const [tab, setTab] = useState("pdfs");
+    const [tab, setTab] = useState(() => loadLastTab(course.id));
     const [pdfs, setPdfs] = useState([]);
     const [links, setLinks] = useState([]);
     const [notes, setNotes] = useState(course.notes || "");
@@ -34,8 +50,13 @@ export default function CourseDetail({ course, onCourseUpdate }) {
     const [viewingPdf, setViewingPdf] = useState(null);
     const fileInputRef = useRef(null);
 
+    const changeTab = (t) => {
+        setTab(t);
+        saveLastTab(course.id, t);
+    };
+
     useEffect(() => {
-        setTab("pdfs");
+        setTab(loadLastTab(course.id));
         setNotes(course.notes || "");
         (async () => {
             try {
@@ -128,11 +149,12 @@ export default function CourseDetail({ course, onCourseUpdate }) {
                             key={t.key}
                             role="tab"
                             data-testid={`tab-${t.key}`}
-                            onClick={() => setTab(t.key)}
+                            onClick={() => changeTab(t.key)}
                             className={`brut-btn px-4 py-2 rounded-md font-bold flex items-center gap-2 ${active ? "translate-x-[2px] translate-y-[2px]" : ""}`}
                             style={{
-                                background: active ? t.color : "#FFFFFF",
-                                boxShadow: active ? "2px 2px 0 0 #1A1A1A" : undefined,
+                                background: active ? t.color : "var(--surface)",
+                                color: active ? "#1A1A1A" : "var(--text)",
+                                boxShadow: active ? "2px 2px 0 0 var(--shadow-color)" : undefined,
                             }}
                         >
                             <Icon size={18} weight={active ? "fill" : "duotone"} />
@@ -153,8 +175,8 @@ export default function CourseDetail({ course, onCourseUpdate }) {
                             handleFiles(e.dataTransfer.files);
                         }}
                         onClick={() => fileInputRef.current?.click()}
-                        className={`brut-card cursor-pointer p-8 text-center transition-colors ${dragOver ? "bg-[#FFF5D0]" : "bg-white"}`}
-                        style={{ borderStyle: "dashed" }}
+                        className={`brut-card cursor-pointer p-8 text-center transition-colors`}
+                        style={{ borderStyle: "dashed", background: dragOver ? "#FFF5D0" : "var(--surface)", color: "var(--text)" }}
                         data-testid="pdf-dropzone"
                     >
                         <input

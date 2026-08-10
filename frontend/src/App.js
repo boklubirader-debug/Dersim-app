@@ -2,13 +2,16 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import AuthPage from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Settings from "./pages/Settings";
+import Admin from "./pages/Admin";
 
 function Protected({ children }) {
     const { user, checked } = useAuth();
     if (!checked) return (
-        <div className="min-h-screen flex items-center justify-center text-neutral-500" data-testid="auth-loading">
+        <div className="min-h-screen flex items-center justify-center text-muted" data-testid="auth-loading">
             Yükleniyor...
         </div>
     );
@@ -25,17 +28,21 @@ function PublicOnly({ children }) {
 
 function App() {
     return (
-        <AuthProvider>
-            <BrowserRouter>
-                <Toaster position="top-right" richColors closeButton />
-                <Routes>
-                    <Route path="/login" element={<PublicOnly><AuthPage mode="login" /></PublicOnly>} />
-                    <Route path="/register" element={<PublicOnly><AuthPage mode="register" /></PublicOnly>} />
-                    <Route path="/" element={<Protected><Dashboard /></Protected>} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-            </BrowserRouter>
-        </AuthProvider>
+        <ThemeProvider>
+            <AuthProvider>
+                <BrowserRouter>
+                    <Toaster position="top-right" richColors closeButton />
+                    <Routes>
+                        <Route path="/login" element={<PublicOnly><AuthPage mode="login" /></PublicOnly>} />
+                        <Route path="/register" element={<PublicOnly><AuthPage mode="register" /></PublicOnly>} />
+                        <Route path="/" element={<Protected><Dashboard /></Protected>} />
+                        <Route path="/settings" element={<Protected><Settings /></Protected>} />
+                        <Route path="/admin" element={<Protected><Admin /></Protected>} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </BrowserRouter>
+            </AuthProvider>
+        </ThemeProvider>
     );
 }
 

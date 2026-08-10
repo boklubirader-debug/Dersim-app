@@ -229,6 +229,74 @@ async def logout(response: Response):
 async def me(user=Depends(get_current_user)):
     return user
 
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = None
+
+class ChangePasswordIn(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=6)
+
+@api_router.patch("/auth/me")
+async def update_profile(payload: ProfileUpdate, user=Depends(get_current_user)):
+    update = {k: v for k, v in payload.model_dump(exclude_unset=True).items() if v is not None and v != ""}
+    if not update:
+        raise HTTPException(status_code=400, detail="Güncellenecek alan yok")
+    await db.users.update_one({"_id": ObjectId(user["id"])}, {"$set": update})
+    user.update(update)
+    return user
+
+@api_router.post("/auth/change-password")
+async def change_password(payload: ChangePasswordIn, user=Depends(get_current_user)):
+    doc = await db.users.find_one({"_id": ObjectId(user["id"])})
+    if not doc or not verify_password(payload.current_password, doc["password_hash"]):
+        raise HTTPException(status_code=400, detail="Mevcut şifre hatalı")
+    await db.users.update_one(
+        {"_id": ObjectId(user["id"])},
+        {"$set": {"password_hash": hash_password(payload.new_password)}},
+    )
+    return {"ok": True}
+
+# --- Admin ---
+async def require_admin(user=Depends(get_current_user)):
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Yönetici yetkisi gerekli")
+    return user
+
+@api_router.get("/admin/users")
+async def admin_list_users(_: dict = Depends(require_admin)):
+    users = []
+    async for u in db.users.find({}).sort("created_at", -1):
+        uid = str(u["_id"])
+        courses_count = await db.courses.count_documents({"user_id": uid})
+        pdfs_count = await db.pdfs.count_documents({"user_id": uid, "is_deleted": {"$ne": True}})
+        links_count = await db.links.count_documents({"user_id": uid})
+        users.append({
+            "id": uid,
+            "email": u.get("email"),
+            "name": u.get("name", ""),
+            "role": u.get("role", "user"),
+            "created_at": u.get("created_at"),
+            "courses_count": courses_count,
+            "pdfs_count": pdfs_count,
+            "links_count": links_count,
+        })
+    return {
+        "total": len(users),
+        "users": users,
+    }
+
+@api_router.delete("/admin/users/{user_id}")
+async def admin_delete_user(user_id: str, admin=Depends(require_admin)):
+    if user_id == admin["id"]:
+        raise HTTPException(status_code=400, detail="Kendini silemezsin")
+    res = await db.users.delete_one({"_id": ObjectId(user_id)})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    await db.courses.delete_many({"user_id": user_id})
+    await db.links.delete_many({"user_id": user_id})
+    await db.pdfs.delete_many({"user_id": user_id})
+    return {"ok": True}
+
 # --- Courses ---
 @api_router.get("/courses")
 async def list_courses(user=Depends(get_current_user)):

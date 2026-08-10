@@ -52,7 +52,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "" }) {
 
     return (
         <div className="space-y-2" data-testid="rich-editor">
-            <div className="brut-card p-2 flex flex-wrap items-center gap-1 sticky top-[76px] bg-white z-10">
+            <div className="brut-card p-2 flex flex-wrap items-center gap-1 sticky top-[76px] z-10" style={{background:"var(--surface)"}}>
                 <ToolBtn onClick={() => exec("bold")} label="Kalın" testid="rt-bold"><TextB size={16} weight="bold" /></ToolBtn>
                 <ToolBtn onClick={() => exec("italic")} label="İtalik" testid="rt-italic"><TextItalic size={16} weight="bold" /></ToolBtn>
                 <ToolBtn onClick={() => exec("underline")} label="Altı çizili" testid="rt-underline"><TextUnderline size={16} weight="bold" /></ToolBtn>
@@ -141,8 +141,8 @@ function ToolBtn({ children, onClick, label, testid }) {
             title={label}
             aria-label={label}
             data-testid={testid}
-            className="w-8 h-8 flex items-center justify-center rounded-md border-2 border-black bg-white hover:bg-[#FFE37E] transition-colors"
-            style={{ boxShadow: "2px 2px 0 0 #1A1A1A" }}
+            className="w-8 h-8 flex items-center justify-center rounded-md border-2 border-[color:var(--ink)] hover:bg-[#FFE37E] hover:text-black transition-colors"
+            style={{ boxShadow: "2px 2px 0 0 var(--shadow-color)", background: "var(--surface)", color: "var(--text)" }}
         >
             {children}
         </button>
