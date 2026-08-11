@@ -478,10 +478,25 @@ async def root():
 
 app.include_router(api_router)
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+def _parse_origins():
+    raw = os.environ.get("CORS_ORIGINS", "").strip()
+    if raw and raw != "*":
+        return [o.strip() for o in raw.split(",") if o.strip()]
+    fu = os.environ.get("FRONTEND_URL", "").strip()
+    return [fu] if fu else ["*"]
+
+_cors_origins = _parse_origins()
+_allow_credentials = _cors_origins != ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=[os.environ.get("FRONTEND_URL", "http://localhost:3000")],
+    allow_credentials=_allow_credentials,
+    allow_origins=_cors_origins,
+    allow_origin_regex=os.environ.get("CORS_ORIGIN_REGEX") or None,
     allow_methods=["*"],
     allow_headers=["*"],
 )

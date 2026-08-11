@@ -1,0 +1,26 @@
+{
+  "summary": "Targeted regression test for deployment fix: root-level /health endpoint + resilient CORS parsing. All 6 acceptance criteria PASS. /health returns 200 {\"status\":\"ok\"} both on localhost:8001 and on the public URL. /api/ still returns API root JSON. /api/auth/me without cookies returns 401. Admin login (admin@dersim.app / Admin123!) returns 200 and sets httpOnly Secure access_token + refresh_token cookies; /api/auth/me with those cookies returns the admin user. Backend logs show 'GET /health HTTP/1.1 200 OK' (no more 404 loop). CORS _parse_origins() implementation verified: reads CORS_ORIGINS (comma-split), falls back to FRONTEND_URL, then '*' with allow_credentials disabled; allow_origin_regex supported via CORS_ORIGIN_REGEX. Only MONGO_URL, DB_NAME, JWT_SECRET are strictly required (os.environ[...]); CORS_ORIGINS/FRONTEND_URL are optional (safe fallback to '*').",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/pdfs/{pdf_id}/download", "issue": "Dead code: 'request.cookies.__dict__.setdefault(\"_dict\", {})' does nothing meaningful; safe to remove."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/test_reports/iteration_1.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "CORS fix is correct — _parse_origins() properly handles missing FRONTEND_URL/CORS_ORIGINS and disables allow_credentials when using wildcard '*' (required by browsers).",
+    "/health is registered on `app` after include_router, so it lives at root path — matches k8s probe expectation.",
+    "Minor: middleware is added AFTER routes and startup handler; FastAPI/Starlette allow this but conventional order is add_middleware before include_router. Not a functional bug.",
+    "Login response includes admin name 'Yönetici' (not 'Admin' from seed) — indicates prior name update; not related to this fix."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "not tested (scope: backend only)"},
+  "test_credentials": "admin@dersim.app / Admin123! — verified working",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Deployment health-check fix and CORS resiliency are verified. /health lives at root (app-level), /api/* routes still work. No follow-up needed.",
+  "rca of the issue": "Root cause: FastAPI had /api/health but k8s nginx probe was hitting /health at root -> 404 loop. Fix: added @app.get('/health') AFTER include_router at root path. CORS root cause: middleware read FRONTEND_URL directly which would 500 if unset. Fix: _parse_origins() with fallback chain CORS_ORIGINS -> FRONTEND_URL -> '*'."
+}

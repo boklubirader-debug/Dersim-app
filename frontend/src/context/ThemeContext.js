@@ -9,8 +9,8 @@ export function ThemeProvider({ children }) {
             const stored = localStorage.getItem(KEY);
             if (stored === "dark" || stored === "light") return stored;
         } catch {}
-        return typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches
-            ? "dark" : "light";
+        // Always default to light mode (per user request)
+        return "light";
     });
 
     useEffect(() => {

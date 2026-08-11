@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
-import { BookOpen, ArrowRight } from "@phosphor-icons/react";
+import { BookOpen, ArrowRight, Moon, Sun } from "@phosphor-icons/react";
 
 export default function AuthPage({ mode = "login" }) {
     const { login, register } = useAuth();
+    const { theme, toggle } = useTheme();
     const nav = useNavigate();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -50,16 +52,24 @@ export default function AuthPage({ mode = "login" }) {
                 </div>
             </div>
 
-            <div className="flex items-center justify-center p-6 md:p-10">
+            <div className="flex items-center justify-center p-6 md:p-10 relative">
+                <button
+                    onClick={toggle}
+                    aria-label={theme === "dark" ? "Aydınlık moda geç" : "Karanlık moda geç"}
+                    className="brut-btn absolute top-4 right-4 px-3 py-2 rounded-md font-bold text-sm flex items-center gap-1"
+                    data-testid="auth-theme-toggle"
+                >
+                    {theme === "dark" ? <><Sun size={16} weight="bold" /> Gündüz</> : <><Moon size={16} weight="bold" /> Gece</>}
+                </button>
                 <div className="w-full max-w-md">
                     <div className="mb-8">
-                        <p className="text-xs tracking-[0.2em] uppercase font-bold text-neutral-500 mb-2">{mode === "login" ? "Tekrar hoş geldin" : "Hemen başla"}</p>
+                        <p className="text-xs tracking-[0.2em] uppercase font-bold text-muted mb-2">{mode === "login" ? "Tekrar hoş geldin" : "Hemen başla"}</p>
                         <h2 className="font-display text-4xl font-black">{mode === "login" ? "Giriş yap." : "Hesap oluştur."}</h2>
                     </div>
                     <form onSubmit={submit} className="space-y-4" data-testid="auth-form">
                         {mode === "register" && (
                             <div>
-                                <label className="text-xs tracking-widest uppercase font-bold text-neutral-600">Ad</label>
+                                <label className="text-xs tracking-widest uppercase font-bold text-muted">Ad</label>
                                 <input
                                     data-testid="auth-name-input"
                                     className="brut-input mt-1"
@@ -71,7 +81,7 @@ export default function AuthPage({ mode = "login" }) {
                             </div>
                         )}
                         <div>
-                            <label className="text-xs tracking-widest uppercase font-bold text-neutral-600">E-posta</label>
+                            <label className="text-xs tracking-widest uppercase font-bold text-muted">E-posta</label>
                             <input
                                 data-testid="auth-email-input"
                                 type="email"
@@ -83,7 +93,7 @@ export default function AuthPage({ mode = "login" }) {
                             />
                         </div>
                         <div>
-                            <label className="text-xs tracking-widest uppercase font-bold text-neutral-600">Şifre</label>
+                            <label className="text-xs tracking-widest uppercase font-bold text-muted">Şifre</label>
                             <input
                                 data-testid="auth-password-input"
                                 type="password"
@@ -106,7 +116,7 @@ export default function AuthPage({ mode = "login" }) {
                             <ArrowRight size={18} weight="bold" />
                         </button>
                     </form>
-                    <div className="mt-6 text-sm text-neutral-600">
+                    <div className="mt-6 text-sm text-muted">
                         {mode === "login" ? (
                             <>Hesabın yok mu? <Link data-testid="link-to-register" to="/register" className="font-bold underline underline-offset-4">Kaydol</Link></>
                         ) : (
