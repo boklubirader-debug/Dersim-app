@@ -66,10 +66,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center gap-2">
                         <PomodoroMini />
-                        <div className="hidden md:block text-right mr-1">
-                            <p className="text-xs text-muted uppercase tracking-widest font-bold">Hoş geldin</p>
-                            <p className="font-bold text-sm truncate max-w-[160px]" data-testid="user-name">{user?.name || user?.email}</p>
-                        </div>
+                        <WelcomeBanner />
                         <button
                             onClick={toggle}
                             aria-label={theme === "dark" ? "Aydınlık moda geç" : "Karanlık moda geç"}
@@ -99,7 +96,6 @@ export default function Dashboard() {
             </header>
 
             <main className="max-w-[1400px] mx-auto px-4 md:px-8 py-8">
-                <WelcomeBanner />
                 <div className="flex flex-col md:flex-row md:items-start gap-3 mb-4">
                     <div className="md:flex-1 min-w-0">
                         <ToolsBar onOpenCourse={selectCourse} />

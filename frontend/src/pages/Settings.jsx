@@ -3,9 +3,10 @@ import { useAuth } from "../context/AuthContext";
 import { api, formatApiErrorDetail } from "../lib/api";
 import { useTheme } from "../context/ThemeContext";
 import { toast } from "sonner";
-import { ArrowLeft, User, LockKey, Moon, Sun, Trash } from "@phosphor-icons/react";
+import { ArrowLeft, User, LockKey, Moon, Sun, Trash, ChatCircleDots } from "@phosphor-icons/react";
 import { Link, useNavigate } from "react-router-dom";
 import PomodoroMini from "../components/PomodoroMini";
+import { isWelcomeEnabled, setWelcomeEnabled } from "../components/WelcomeBanner";
 
 export default function Settings() {
     const { user, logout } = useAuth();
@@ -16,6 +17,13 @@ export default function Settings() {
     const [curPass, setCurPass] = useState("");
     const [newPass, setNewPass] = useState("");
     const [changing, setChanging] = useState(false);
+    const [welcomeOn, setWelcomeOn] = useState(isWelcomeEnabled());
+
+    const toggleWelcome = () => {
+        const next = !welcomeOn;
+        setWelcomeOn(next);
+        setWelcomeEnabled(next);
+    };
 
     const saveName = async (e) => {
         e.preventDefault();
@@ -76,6 +84,29 @@ export default function Settings() {
                             data-testid="theme-toggle-btn"
                         >
                             {theme === "dark" ? <><Sun size={16} weight="bold" /> Aydınlığa geç</> : <><Moon size={16} weight="bold" /> Karanlığa geç</>}
+                        </button>
+                    </div>
+                </section>
+
+                {/* Welcome greeting toggle */}
+                <section className="brut-card p-5" data-testid="settings-welcome">
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                        <div>
+                            <p className="text-xs tracking-[0.2em] uppercase font-bold text-muted">Hoş geldin mesajı</p>
+                            <h2 className="font-display text-xl font-black flex items-center gap-2">
+                                <ChatCircleDots size={20} weight="duotone" />
+                                {welcomeOn ? "Açık" : "Kapalı"}
+                            </h2>
+                            <p className="text-sm text-muted mt-1">Ana sayfada, üst çubukta selamlaşma ve motivasyon cümlesi göster.</p>
+                        </div>
+                        <button
+                            onClick={toggleWelcome}
+                            className="brut-btn px-4 py-2 rounded-md font-bold flex items-center gap-2"
+                            style={{background: welcomeOn ? "#FFC9B5" : "#A7E8D0", color: "#1A1A1A"}}
+                            data-testid="welcome-toggle-btn"
+                            aria-pressed={welcomeOn}
+                        >
+                            {welcomeOn ? "Kapat" : "Aç"}
                         </button>
                     </div>
                 </section>
