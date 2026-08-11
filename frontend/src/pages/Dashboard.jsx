@@ -9,6 +9,7 @@ import ExamCountdown from "../components/ExamCountdown";
 import ToolsBar from "../components/ToolsBar";
 import PomodoroMini from "../components/PomodoroMini";
 import WelcomeBanner from "../components/WelcomeBanner";
+import StreakFlame from "../components/StreakFlame";
 import { toast } from "sonner";
 import { BookOpen, SignOut, Gear, Moon, Sun, ShieldCheck } from "@phosphor-icons/react";
 
@@ -60,8 +61,11 @@ export default function Dashboard() {
                             <BookOpen size={22} weight="duotone" color="#1A1A1A" />
                         </div>
                         <div className="min-w-0">
-                            <h1 className="font-display text-xl font-black leading-none">dersim.</h1>
-                            <p className="text-xs text-muted mt-0.5 truncate">Ders çalışma paneli</p>
+                            <div className="flex items-center gap-2">
+                                <h1 className="font-display text-xl font-black leading-none">Dersim</h1>
+                                <StreakFlame />
+                            </div>
+                            <p className="text-xs text-muted mt-1 truncate">Ders çalışma paneli</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">

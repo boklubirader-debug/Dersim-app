@@ -3,9 +3,11 @@ import { api, API } from "../lib/api";
 import { toast } from "sonner";
 import {
     FilePdf, LinkSimple, NotePencil, UploadSimple, Trash,
-    ArrowSquareOut, CheckCircle, CircleNotch, Plus, Play, Eye
+    ArrowSquareOut, CheckCircle, CircleNotch, Plus, Play, Eye,
+    PencilSimple, CheckSquare, Square,
 } from "@phosphor-icons/react";
 import PdfViewer from "./PdfViewer";
+import InlinePdfViewer from "./InlinePdfViewer";
 import { detectVideo } from "../lib/video";
 import RichTextEditor from "./RichTextEditor";
 
@@ -48,6 +50,7 @@ export default function CourseDetail({ course, onCourseUpdate }) {
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
     const [viewingPdf, setViewingPdf] = useState(null);
+    const [selectedPdfId, setSelectedPdfId] = useState(null);
     const fileInputRef = useRef(null);
 
     const changeTab = (t) => {
@@ -175,7 +178,7 @@ export default function CourseDetail({ course, onCourseUpdate }) {
                             handleFiles(e.dataTransfer.files);
                         }}
                         onClick={() => fileInputRef.current?.click()}
-                        className={`brut-card cursor-pointer p-8 text-center transition-colors`}
+                        className={`brut-card cursor-pointer p-4 text-center transition-colors`}
                         style={{ borderStyle: "dashed", background: dragOver ? "#FFF5D0" : "var(--surface)", color: "var(--text)" }}
                         data-testid="pdf-dropzone"
                     >
@@ -188,57 +191,56 @@ export default function CourseDetail({ course, onCourseUpdate }) {
                             onChange={(e) => handleFiles(e.target.files)}
                             data-testid="pdf-file-input"
                         />
-                        <div className="flex flex-col items-center gap-2">
-                            <div className="w-14 h-14 brut-border rounded-md flex items-center justify-center" style={{background: "#FFE37E"}}>
-                                <UploadSimple size={24} weight="bold" />
+                        <div className="flex items-center justify-center gap-3">
+                            <div className="w-10 h-10 brut-border rounded-md flex items-center justify-center shrink-0" style={{background: "#FFE37E"}}>
+                                <UploadSimple size={18} weight="bold" />
                             </div>
-                            <p className="font-display text-xl font-bold">
+                            <p className="font-display text-base font-bold">
                                 {uploading ? "Yükleniyor..." : "PDF sürükle bırak veya tıkla"}
                             </p>
-                            <p className="text-sm text-muted">En fazla 25MB — birden fazla dosya seçebilirsin</p>
+                            <span className="text-xs text-muted hidden sm:inline">En fazla 25MB, çoklu seçim</span>
                         </div>
                     </div>
 
-                    <div className="grid sm:grid-cols-2 gap-4">
-                        {pdfs.map((p) => {
-                            return (
-                                <div key={p.id} className="brut-card p-4 flex flex-col gap-3" data-testid={`pdf-item-${p.id}`}>
-                                    <button
-                                        type="button"
-                                        onClick={() => setViewingPdf(p)}
-                                        className="flex items-start gap-3 text-left"
-                                        data-testid={`pdf-open-${p.id}`}
-                                    >
-                                        <div className="w-10 h-12 brut-border rounded-sm flex items-center justify-center shrink-0" style={{background:"#FFC9B5"}}>
-                                            <FilePdf size={20} weight="fill" />
+                    {pdfs.length > 0 && (
+                        <>
+                            {/* PDF selector strip */}
+                            <div className="flex gap-2 overflow-x-auto pb-1" data-testid="pdf-strip">
+                                {pdfs.map((p) => {
+                                    const active = (selectedPdfId || pdfs[0]?.id) === p.id;
+                                    return (
+                                        <div key={p.id} className="brut-card p-2 flex items-center gap-2 shrink-0" style={{minWidth: 200, maxWidth: 260, background: active ? "#FFE37E" : "var(--surface)", color: active ? "#1A1A1A" : "var(--text)", boxShadow: active ? "2px 2px 0 0 var(--shadow-color)" : undefined, transform: active ? "translate(2px,2px)" : undefined}} data-testid={`pdf-item-${p.id}`}>
+                                            <button
+                                                onClick={() => setSelectedPdfId(p.id)}
+                                                className="flex items-center gap-2 flex-1 min-w-0 text-left"
+                                                data-testid={`pdf-select-${p.id}`}
+                                            >
+                                                <div className="w-8 h-10 brut-border rounded-sm flex items-center justify-center shrink-0" style={{background:"#FFC9B5"}}>
+                                                    <FilePdf size={16} weight="fill" color="#1A1A1A" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="font-bold text-sm truncate" title={p.filename}>{p.filename}</p>
+                                                    <p className="text-[10px] opacity-70">{(p.size / 1024).toFixed(0)} KB</p>
+                                                </div>
+                                            </button>
+                                            <button
+                                                onClick={() => deletePdf(p.id)}
+                                                className="text-red-600 shrink-0 p-1"
+                                                data-testid={`pdf-delete-${p.id}`}
+                                                aria-label="Sil"
+                                                title="Sil"
+                                            >
+                                                <Trash size={14} weight="bold" />
+                                            </button>
                                         </div>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="font-bold truncate hover:underline" title={p.filename}>{p.filename}</p>
-                                            <p className="text-xs text-muted">{(p.size / 1024).toFixed(0)} KB · Aç ve oku</p>
-                                        </div>
-                                    </button>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setViewingPdf(p)}
-                                            className="brut-btn flex-1 py-2 rounded-md text-center font-bold text-sm flex items-center justify-center gap-1"
-                                            style={{background: "#A7E8D0"}}
-                                            data-testid={`pdf-view-${p.id}`}
-                                        >
-                                            <Eye size={16} weight="bold" /> Aç
-                                        </button>
-                                        <button
-                                            onClick={() => deletePdf(p.id)}
-                                            className="brut-btn px-3 py-2 rounded-md font-bold text-red-600"
-                                            data-testid={`pdf-delete-${p.id}`}
-                                            aria-label="Sil"
-                                        >
-                                            <Trash size={16} weight="bold" />
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Inline PDF viewer (visible directly, no need to click "Open") */}
+                            <InlinePdfViewer key={(selectedPdfId || pdfs[0]?.id)} pdf={pdfs.find((p) => p.id === (selectedPdfId || pdfs[0]?.id)) || pdfs[0]} onOpenFullscreen={setViewingPdf} />
+                        </>
+                    )}
                     {pdfs.length === 0 && (
                         <p className="text-sm text-muted pl-1">Henüz PDF yok. Yukarıdan yükleyerek başla.</p>
                     )}
@@ -365,7 +367,7 @@ function LinksPanel({ courseId, links, setLinks }) {
 
             <div className="grid md:grid-cols-2 gap-4">
                 {links.map((l) => (
-                    <LinkCard key={l.id} link={l} onDelete={del} />
+                    <LinkCard key={l.id} link={l} onDelete={del} onUpdate={(updated) => setLinks(links.map((x) => x.id === updated.id ? updated : x))} />
                 ))}
             </div>
             {links.length === 0 && (
@@ -375,13 +377,44 @@ function LinksPanel({ courseId, links, setLinks }) {
     );
 }
 
-function LinkCard({ link, onDelete }) {
+function LinkCard({ link, onDelete, onUpdate }) {
     const video = detectVideo(link.url);
     const [playing, setPlaying] = useState(false);
+    const [editing, setEditing] = useState(false);
+    const [title, setTitle] = useState(link.title);
+    const [url, setUrl] = useState(link.url);
+    const [description, setDescription] = useState(link.description || "");
+    const [saving, setSaving] = useState(false);
+
+    const save = async (e) => {
+        e?.preventDefault?.();
+        setSaving(true);
+        try {
+            const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+            const { data } = await api.patch(`/links/${link.id}`, { title, url: finalUrl, description });
+            onUpdate?.(data);
+            setEditing(false);
+            toast.success("Link güncellendi");
+        } catch {
+            toast.error("Güncellenemedi");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const toggleWatched = async () => {
+        const next = !link.watched;
+        try {
+            const { data } = await api.patch(`/links/${link.id}`, { watched: next });
+            onUpdate?.(data);
+        } catch {
+            toast.error("Durum güncellenemedi");
+        }
+    };
 
     return (
-        <div className="brut-card p-4 flex flex-col gap-3" data-testid={`link-item-${link.id}`}>
-            {video && (
+        <div className={`brut-card p-4 flex flex-col gap-3 ${link.watched ? "opacity-70" : ""}`} data-testid={`link-item-${link.id}`}>
+            {video && !editing && (
                 <div className="relative w-full brut-border rounded-md overflow-hidden bg-black" style={{aspectRatio: "16/9"}}>
                     {playing ? (
                         <iframe
@@ -401,12 +434,7 @@ function LinkCard({ link, onDelete }) {
                             aria-label="Videoyu oynat"
                         >
                             {video.thumb ? (
-                                <img
-                                    src={video.thumb}
-                                    alt={link.title}
-                                    className="w-full h-full object-cover"
-                                    loading="lazy"
-                                />
+                                <img src={video.thumb} alt={link.title} className="w-full h-full object-cover" loading="lazy" />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-neutral-800 to-neutral-900 text-white font-display font-black text-2xl px-4 text-center">
                                     {link.title}
@@ -414,35 +442,75 @@ function LinkCard({ link, onDelete }) {
                             )}
                             <div className="absolute inset-0 flex items-center justify-center bg-black/25 group-hover:bg-black/10 transition-colors">
                                 <div className="brut-border bg-white rounded-full w-14 h-14 flex items-center justify-center" style={{boxShadow:"3px 3px 0 0 #1A1A1A"}}>
-                                    <Play size={22} weight="fill" />
+                                    <Play size={22} weight="fill" color="#1A1A1A" />
                                 </div>
                             </div>
-                            <span className="absolute top-2 left-2 tag-pill bg-white text-[10px]" style={{padding:"0.15rem 0.5rem"}}>
+                            <span className="absolute top-2 left-2 tag-pill bg-white text-[10px]" style={{padding:"0.15rem 0.5rem", color:"#1A1A1A"}}>
                                 {video.provider === "youtube" ? "YouTube" : "Vimeo"}
                             </span>
                         </button>
                     )}
                 </div>
             )}
-            <div className="flex items-start justify-between gap-2">
-                <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-display font-bold text-lg underline underline-offset-4 hover:no-underline break-all"
-                    data-testid={`link-open-${link.id}`}
-                >{link.title}</a>
-                <button
-                    onClick={() => onDelete(link.id)}
-                    className="text-red-600 shrink-0"
-                    data-testid={`link-delete-${link.id}`}
-                    aria-label="Sil"
-                >
-                    <Trash size={16} weight="bold" />
-                </button>
-            </div>
-            <p className="text-xs text-muted break-all">{link.url}</p>
-            {link.description && <p className="text-sm">{link.description}</p>}
+
+            {editing ? (
+                <form onSubmit={save} className="space-y-2" data-testid={`link-edit-form-${link.id}`}>
+                    <input value={title} onChange={(e) => setTitle(e.target.value)} className="brut-input" placeholder="Başlık" data-testid={`link-edit-title-${link.id}`} required />
+                    <input value={url} onChange={(e) => setUrl(e.target.value)} className="brut-input" placeholder="URL" data-testid={`link-edit-url-${link.id}`} required />
+                    <input value={description} onChange={(e) => setDescription(e.target.value)} className="brut-input" placeholder="Açıklama (opsiyonel)" data-testid={`link-edit-desc-${link.id}`} />
+                    <div className="flex gap-2">
+                        <button type="submit" disabled={saving} className="brut-btn px-3 py-1.5 rounded-md font-bold text-sm" style={{background:"#A7E8D0", color:"#1A1A1A"}} data-testid={`link-edit-save-${link.id}`}>Kaydet</button>
+                        <button type="button" onClick={() => { setEditing(false); setTitle(link.title); setUrl(link.url); setDescription(link.description || ""); }} className="brut-btn px-3 py-1.5 rounded-md font-bold text-sm" data-testid={`link-edit-cancel-${link.id}`}>İptal</button>
+                    </div>
+                </form>
+            ) : (
+                <>
+                    <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2 min-w-0 flex-1">
+                            <button
+                                onClick={toggleWatched}
+                                className="shrink-0 mt-1"
+                                data-testid={`link-watched-${link.id}`}
+                                aria-label={link.watched ? "İzlendi olarak işaretle kaldır" : "İzlendi olarak işaretle"}
+                                title={link.watched ? "İzlendi" : "İzlemedim"}
+                            >
+                                {link.watched
+                                    ? <CheckSquare size={22} weight="fill" style={{color:"#16A34A"}} />
+                                    : <Square size={22} weight="bold" />}
+                            </button>
+                            <a
+                                href={link.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={`font-display font-bold text-lg underline underline-offset-4 hover:no-underline break-all ${link.watched ? "line-through decoration-2" : ""}`}
+                                data-testid={`link-open-${link.id}`}
+                            >{link.title}</a>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                            <button
+                                onClick={() => setEditing(true)}
+                                className="p-1"
+                                data-testid={`link-edit-${link.id}`}
+                                aria-label="Düzenle"
+                                title="Düzenle"
+                            >
+                                <PencilSimple size={16} weight="bold" />
+                            </button>
+                            <button
+                                onClick={() => onDelete(link.id)}
+                                className="p-1 text-red-600"
+                                data-testid={`link-delete-${link.id}`}
+                                aria-label="Sil"
+                                title="Sil"
+                            >
+                                <Trash size={16} weight="bold" />
+                            </button>
+                        </div>
+                    </div>
+                    <p className="text-xs text-muted break-all">{link.url}</p>
+                    {link.description && <p className="text-sm">{link.description}</p>}
+                </>
+            )}
         </div>
     );
 }

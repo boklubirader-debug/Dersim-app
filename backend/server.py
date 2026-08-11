@@ -151,6 +151,7 @@ class LinkUpdate(BaseModel):
     title: Optional[str] = None
     url: Optional[str] = None
     description: Optional[str] = None
+    watched: Optional[bool] = None
 
 class ReorderIn(BaseModel):
     ordered_ids: List[str]
@@ -175,6 +176,7 @@ def link_out(doc):
         "title": doc.get("title", ""),
         "url": doc.get("url", ""),
         "description": doc.get("description", ""),
+        "watched": bool(doc.get("watched", False)),
         "created_at": doc.get("created_at"),
     }
 
