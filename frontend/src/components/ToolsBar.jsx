@@ -1,15 +1,17 @@
 import React, { useState } from "react";
-import { Timer, MusicNote, CalendarCheck, ChartBar, X } from "@phosphor-icons/react";
+import { Timer, MusicNote, CalendarCheck, ChartBar, NotePencil, X } from "@phosphor-icons/react";
 import Pomodoro from "./Pomodoro";
 import MusicPlayer from "./MusicPlayer";
 import Review from "./Review";
 import Stats from "./Stats";
+import Journal from "./Journal";
 
 const TOOLS = [
     { key: "pomodoro", label: "Pomodoro", icon: Timer, color: "#FFE37E" },
     { key: "music", label: "Müzik", icon: MusicNote, color: "#D0C9FF" },
     { key: "review", label: "Tekrar", icon: CalendarCheck, color: "#A7E8D0" },
     { key: "stats", label: "İstatistik", icon: ChartBar, color: "#FFC9B5" },
+    { key: "journal", label: "Notlar", icon: NotePencil, color: "#B5E0FF" },
 ];
 
 export default function ToolsBar({ onOpenCourse }) {
@@ -61,6 +63,7 @@ export default function ToolsBar({ onOpenCourse }) {
                     {open === "music" && <MusicPlayer />}
                     {open === "review" && <Review onOpenCourse={(id) => { onOpenCourse?.(id); setOpen(null); }} />}
                     {open === "stats" && <Stats />}
+                    {open === "journal" && <Journal />}
                 </div>
             )}
         </div>

@@ -696,6 +696,54 @@ async def delete_pdf(pdf_id: str, user=Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="PDF bulunamadı")
     return {"ok": True}
 
+# --- Journal (Daily study log) ---
+class JournalUpsertIn(BaseModel):
+    content: str = ""
+
+def _journal_out(doc):
+    return {
+        "id": str(doc["_id"]),
+        "date": doc.get("date", ""),
+        "content": doc.get("content", ""),
+        "updated_at": doc.get("updated_at"),
+    }
+
+@api_router.get("/journal")
+async def journal_list(days: int = 30, user=Depends(get_current_user)):
+    today = datetime.now(timezone.utc).date()
+    start = (today - timedelta(days=max(1, min(days, 365)) - 1)).isoformat()
+    cursor = db.journal_entries.find({
+        "user_id": user["id"],
+        "date": {"$gte": start},
+    }).sort("date", -1)
+    return [_journal_out(d) async for d in cursor]
+
+@api_router.get("/journal/{date}")
+async def journal_get(date: str, user=Depends(get_current_user)):
+    doc = await db.journal_entries.find_one({"user_id": user["id"], "date": date})
+    if not doc:
+        return {"id": None, "date": date, "content": "", "updated_at": None}
+    return _journal_out(doc)
+
+@api_router.put("/journal/{date}")
+async def journal_upsert(date: str, payload: JournalUpsertIn, user=Depends(get_current_user)):
+    # Basic date validation (YYYY-MM-DD)
+    try:
+        datetime.strptime(date, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Tarih formatı YYYY-MM-DD olmalı")
+    now = datetime.now(timezone.utc).isoformat()
+    await db.journal_entries.update_one(
+        {"user_id": user["id"], "date": date},
+        {
+            "$set": {"content": payload.content, "updated_at": now},
+            "$setOnInsert": {"user_id": user["id"], "date": date, "created_at": now},
+        },
+        upsert=True,
+    )
+    doc = await db.journal_entries.find_one({"user_id": user["id"], "date": date})
+    return _journal_out(doc)
+
 # --- Root ---
 @api_router.get("/")
 async def root():
@@ -734,6 +782,7 @@ async def startup():
     await db.pdfs.create_index([("user_id", 1), ("course_id", 1)])
     await db.password_reset_tokens.create_index("token", unique=True)
     await db.password_reset_tokens.create_index("expires_at", expireAfterSeconds=0)
+    await db.journal_entries.create_index([("user_id", 1), ("date", -1)], unique=True)
     # Seed admin
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@dersim.app").lower()
     admin_password = os.environ.get("ADMIN_PASSWORD", "Admin123!")
