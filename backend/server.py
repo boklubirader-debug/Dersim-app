@@ -304,6 +304,7 @@ import secrets as _secrets
 
 resend.api_key = os.environ.get("RESEND_API_KEY", "")
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+SENDER_EMAIL_FALLBACK = os.environ.get("SENDER_EMAIL_FALLBACK", "")
 
 def _reset_email_html(link: str) -> str:
     return f"""
@@ -326,19 +327,23 @@ async def _send_reset_email(to_email: str, link: str) -> bool:
     if not resend.api_key:
         logger.warning("RESEND_API_KEY missing — email not sent")
         return False
-    try:
-        params = {
-            "from": SENDER_EMAIL,
-            "to": [to_email],
-            "subject": "Dersim — Şifre sıfırlama bağlantın",
-            "html": _reset_email_html(link),
-        }
-        result = await asyncio.to_thread(resend.Emails.send, params)
-        logger.info(f"[RESET EMAIL SENT] to={to_email} id={result.get('id')}")
-        return True
-    except Exception as e:
-        logger.error(f"[RESET EMAIL FAILED] to={to_email} err={e}")
-        return False
+    subject = "Dersim — Şifre sıfırlama bağlantın"
+    html = _reset_email_html(link)
+    senders = [SENDER_EMAIL] + ([SENDER_EMAIL_FALLBACK] if SENDER_EMAIL_FALLBACK and SENDER_EMAIL_FALLBACK != SENDER_EMAIL else [])
+    last_err = None
+    for sender in senders:
+        try:
+            result = await asyncio.to_thread(
+                resend.Emails.send,
+                {"from": sender, "to": [to_email], "subject": subject, "html": html},
+            )
+            logger.info(f"[RESET EMAIL SENT] from={sender} to={to_email} id={result.get('id')}")
+            return True
+        except Exception as e:
+            last_err = e
+            logger.warning(f"[RESET EMAIL RETRY] sender={sender} err={e}")
+    logger.error(f"[RESET EMAIL FAILED] to={to_email} err={last_err}")
+    return False
 
 class ForgotPasswordIn(BaseModel):
     email: EmailStr

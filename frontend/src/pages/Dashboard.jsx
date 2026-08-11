@@ -8,6 +8,7 @@ import CourseDetail from "../components/CourseDetail";
 import ExamCountdown from "../components/ExamCountdown";
 import ToolsBar from "../components/ToolsBar";
 import PomodoroMini from "../components/PomodoroMini";
+import WelcomeBanner from "../components/WelcomeBanner";
 import { toast } from "sonner";
 import { BookOpen, SignOut, Gear, Moon, Sun, ShieldCheck } from "@phosphor-icons/react";
 
@@ -98,6 +99,7 @@ export default function Dashboard() {
             </header>
 
             <main className="max-w-[1400px] mx-auto px-4 md:px-8 py-8">
+                <WelcomeBanner />
                 <div className="flex flex-col md:flex-row md:items-start gap-3 mb-4">
                     <div className="md:flex-1 min-w-0">
                         <ToolsBar onOpenCourse={selectCourse} />
