@@ -7,7 +7,9 @@ load_dotenv(ROOT_DIR / '.env')
 import os
 import uuid
 import logging
+import asyncio
 import requests
+import resend
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 
@@ -300,6 +302,44 @@ async def admin_delete_user(user_id: str, admin=Depends(require_admin)):
 # --- Password Reset ---
 import secrets as _secrets
 
+resend.api_key = os.environ.get("RESEND_API_KEY", "")
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+
+def _reset_email_html(link: str) -> str:
+    return f"""
+<div style="font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #1A1A1A;">
+  <div style="background: #FDFBF7; border: 2px solid #1A1A1A; border-radius: 12px; padding: 32px; box-shadow: 6px 6px 0 0 #1A1A1A;">
+    <p style="font-weight: 800; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #4B5563; margin: 0 0 8px;">dersim.</p>
+    <h1 style="font-size: 28px; margin: 0 0 12px; letter-spacing: -0.5px;">Şifre sıfırlama isteği</h1>
+    <p style="font-size: 15px; line-height: 1.6; margin: 0 0 20px;">Aşağıdaki butona tıklayarak yeni şifreni belirleyebilirsin. Bu bağlantı <b>1 saat</b> geçerli.</p>
+    <p style="margin: 24px 0;">
+      <a href="{link}" style="display: inline-block; background: #FFE37E; color: #1A1A1A; text-decoration: none; padding: 12px 24px; border: 2px solid #1A1A1A; border-radius: 8px; font-weight: 800; box-shadow: 4px 4px 0 0 #1A1A1A;">Şifremi sıfırla</a>
+    </p>
+    <p style="font-size: 12px; color: #4B5563; word-break: break-all; margin: 16px 0 0;">Buton çalışmazsa şu linki kopyala: <br><a href="{link}" style="color: #1A1A1A;">{link}</a></p>
+    <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 24px 0;">
+    <p style="font-size: 12px; color: #6B7280; margin: 0;">Bu isteği sen yapmadıysan bu e-postayı yok sayabilirsin — hesabın güvende.</p>
+  </div>
+</div>
+""".strip()
+
+async def _send_reset_email(to_email: str, link: str) -> bool:
+    if not resend.api_key:
+        logger.warning("RESEND_API_KEY missing — email not sent")
+        return False
+    try:
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [to_email],
+            "subject": "Dersim — Şifre sıfırlama bağlantın",
+            "html": _reset_email_html(link),
+        }
+        result = await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"[RESET EMAIL SENT] to={to_email} id={result.get('id')}")
+        return True
+    except Exception as e:
+        logger.error(f"[RESET EMAIL FAILED] to={to_email} err={e}")
+        return False
+
 class ForgotPasswordIn(BaseModel):
     email: EmailStr
 
@@ -311,7 +351,6 @@ class ResetPasswordIn(BaseModel):
 async def forgot_password(payload: ForgotPasswordIn):
     email = payload.email.lower()
     user = await db.users.find_one({"email": email})
-    # Always return same message to avoid email enumeration
     if user:
         token = _secrets.token_urlsafe(32)
         expires = datetime.now(timezone.utc) + timedelta(hours=1)
@@ -325,7 +364,8 @@ async def forgot_password(payload: ForgotPasswordIn):
         frontend = os.environ.get("FRONTEND_URL", "").rstrip("/")
         link = f"{frontend}/reset-password?token={token}" if frontend else f"/reset-password?token={token}"
         logger.info(f"[PASSWORD RESET] {email} -> {link}")
-    return {"ok": True, "message": "E-postan sistemde varsa şifre sıfırlama bağlantısı oluşturuldu"}
+        await _send_reset_email(email, link)
+    return {"ok": True, "message": "E-postan sistemde varsa şifre sıfırlama bağlantısı gönderildi"}
 
 @api_router.post("/auth/reset-password")
 async def reset_password(payload: ResetPasswordIn):

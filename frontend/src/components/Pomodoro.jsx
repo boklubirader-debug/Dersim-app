@@ -1,101 +1,19 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
+import { usePomodoro } from "../context/PomodoroContext";
 import { Play, Pause, ArrowClockwise, Coffee, Brain } from "@phosphor-icons/react";
-
-const STORAGE = "dersim.pomodoro.v1";
-const FOCUS = 25 * 60;
-const SHORT = 5 * 60;
-const LONG = 15 * 60;
 
 function pad(n) { return String(Math.max(0, Math.floor(n))).padStart(2, "0"); }
 
-function loadCycles() {
-    try {
-        const day = new Date().toDateString();
-        const obj = JSON.parse(localStorage.getItem(STORAGE) || "{}");
-        return obj.day === day ? obj.cycles || 0 : 0;
-    } catch { return 0; }
-}
-function saveCycles(cycles) {
-    try {
-        localStorage.setItem(STORAGE, JSON.stringify({ day: new Date().toDateString(), cycles }));
-    } catch {}
-}
-
 export default function Pomodoro() {
-    const [mode, setMode] = useState("focus"); // focus | short | long
-    const target = mode === "focus" ? FOCUS : mode === "short" ? SHORT : LONG;
-    const [remaining, setRemaining] = useState(target);
-    const [running, setRunning] = useState(false);
-    const [cycles, setCycles] = useState(loadCycles());
-    const startAtRef = useRef(null);
-    const initialRef = useRef(target);
-
-    useEffect(() => {
-        setRemaining(target);
-        setRunning(false);
-        initialRef.current = target;
-    }, [target]);
-
-    useEffect(() => {
-        if (!running) return;
-        startAtRef.current = Date.now();
-        const start = initialRef.current;
-        const startedAt = startAtRef.current;
-        const id = setInterval(() => {
-            const elapsed = (Date.now() - startedAt) / 1000;
-            const left = Math.max(0, start - elapsed);
-            setRemaining(left);
-            if (left <= 0) {
-                clearInterval(id);
-                setRunning(false);
-                if (mode === "focus") {
-                    const next = cycles + 1;
-                    setCycles(next);
-                    saveCycles(next);
-                    try {
-                        // small chime via WebAudio
-                        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                        const o = ctx.createOscillator();
-                        const g = ctx.createGain();
-                        o.type = "sine"; o.frequency.value = 660;
-                        o.connect(g); g.connect(ctx.destination);
-                        g.gain.setValueAtTime(0.001, ctx.currentTime);
-                        g.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.05);
-                        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
-                        o.start(); o.stop(ctx.currentTime + 1);
-                    } catch {}
-                    setMode(next % 4 === 0 ? "long" : "short");
-                } else {
-                    setMode("focus");
-                }
-            }
-        }, 250);
-        return () => clearInterval(id);
-    }, [running, mode, cycles]);
-
-    const startPause = () => {
-        if (running) {
-            // pause: capture remaining as new initial
-            initialRef.current = remaining;
-            setRunning(false);
-        } else {
-            initialRef.current = remaining > 0 ? remaining : target;
-            setRunning(true);
-        }
-    };
-    const reset = () => {
-        setRunning(false);
-        initialRef.current = target;
-        setRemaining(target);
-    };
-
+    const { mode, running, remaining, cycles, setMode, start, pause, reset, DURATIONS } = usePomodoro();
+    const target = DURATIONS[mode];
     const minutes = Math.floor(remaining / 60);
     const seconds = Math.floor(remaining % 60);
     const pct = ((target - remaining) / target) * 100;
 
     return (
         <div className="space-y-4" data-testid="pomodoro-panel">
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
                 <ModeBtn active={mode === "focus"} onClick={() => setMode("focus")} testid="pomo-mode-focus">
                     <Brain size={16} weight="bold" /> Odaklan (25dk)
                 </ModeBtn>
@@ -116,7 +34,7 @@ export default function Pomodoro() {
                 </div>
                 <div className="mt-5 flex items-center justify-center gap-3">
                     <button
-                        onClick={startPause}
+                        onClick={running ? pause : start}
                         className="brut-btn px-5 py-3 rounded-md font-bold flex items-center gap-2"
                         style={{background: running ? "#FFC9B5" : "#FFE37E", color: "#1A1A1A"}}
                         data-testid="pomo-start-pause"
@@ -131,7 +49,12 @@ export default function Pomodoro() {
                         <ArrowClockwise size={16} weight="bold" /> Sıfırla
                     </button>
                 </div>
-                <p className="text-xs text-muted mt-4">Bugün tamamlanan pomodoro: <span className="font-bold text-[color:var(--text)]" data-testid="pomo-cycles">{cycles}</span></p>
+                <p className="text-xs text-muted mt-4">
+                    Bugün tamamlanan pomodoro: <span className="font-bold text-[color:var(--text)]" data-testid="pomo-cycles">{cycles}</span>
+                </p>
+                <p className="text-[11px] text-muted mt-1">
+                    İpucu: Başlattıktan sonra başka sekmeye geçsen bile sayaç durmaz — üst bantta küçük gösterge kalır.
+                </p>
             </div>
         </div>
     );

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { PomodoroProvider } from "./context/PomodoroContext";
 import AuthPage from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
@@ -31,19 +32,21 @@ function App() {
     return (
         <ThemeProvider>
             <AuthProvider>
-                <BrowserRouter>
-                    <Toaster position="top-right" richColors closeButton />
-                    <Routes>
-                        <Route path="/login" element={<PublicOnly><AuthPage mode="login" /></PublicOnly>} />
-                        <Route path="/register" element={<PublicOnly><AuthPage mode="register" /></PublicOnly>} />
-                        <Route path="/forgot-password" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
-                        <Route path="/reset-password" element={<PublicOnly><ResetPassword /></PublicOnly>} />
-                        <Route path="/" element={<Protected><Dashboard /></Protected>} />
-                        <Route path="/settings" element={<Protected><Settings /></Protected>} />
-                        <Route path="/admin" element={<Protected><Admin /></Protected>} />
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                </BrowserRouter>
+                <PomodoroProvider>
+                    <BrowserRouter>
+                        <Toaster position="top-right" richColors closeButton />
+                        <Routes>
+                            <Route path="/login" element={<PublicOnly><AuthPage mode="login" /></PublicOnly>} />
+                            <Route path="/register" element={<PublicOnly><AuthPage mode="register" /></PublicOnly>} />
+                            <Route path="/forgot-password" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
+                            <Route path="/reset-password" element={<PublicOnly><ResetPassword /></PublicOnly>} />
+                            <Route path="/" element={<Protected><Dashboard /></Protected>} />
+                            <Route path="/settings" element={<Protected><Settings /></Protected>} />
+                            <Route path="/admin" element={<Protected><Admin /></Protected>} />
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
+                    </BrowserRouter>
+                </PomodoroProvider>
             </AuthProvider>
         </ThemeProvider>
     );

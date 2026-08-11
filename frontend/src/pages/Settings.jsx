@@ -5,6 +5,7 @@ import { useTheme } from "../context/ThemeContext";
 import { toast } from "sonner";
 import { ArrowLeft, User, LockKey, Moon, Sun, Trash } from "@phosphor-icons/react";
 import { Link, useNavigate } from "react-router-dom";
+import PomodoroMini from "../components/PomodoroMini";
 
 export default function Settings() {
     const { user, logout } = useAuth();
@@ -52,6 +53,7 @@ export default function Settings() {
                         <ArrowLeft size={16} weight="bold" /> Geri
                     </Link>
                     <h1 className="font-display text-2xl font-black">Ayarlar</h1>
+                    <div className="ml-auto"><PomodoroMini /></div>
                 </div>
             </header>
 

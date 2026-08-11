@@ -7,6 +7,7 @@ import CourseSidebar from "../components/CourseSidebar";
 import CourseDetail from "../components/CourseDetail";
 import ExamCountdown from "../components/ExamCountdown";
 import ToolsBar from "../components/ToolsBar";
+import PomodoroMini from "../components/PomodoroMini";
 import { toast } from "sonner";
 import { BookOpen, SignOut, Gear, Moon, Sun, ShieldCheck } from "@phosphor-icons/react";
 
@@ -63,6 +64,7 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
+                        <PomodoroMini />
                         <div className="hidden md:block text-right mr-1">
                             <p className="text-xs text-muted uppercase tracking-widest font-bold">Hoş geldin</p>
                             <p className="font-bold text-sm truncate max-w-[160px]" data-testid="user-name">{user?.name || user?.email}</p>
@@ -96,8 +98,14 @@ export default function Dashboard() {
             </header>
 
             <main className="max-w-[1400px] mx-auto px-4 md:px-8 py-8">
-                <ToolsBar onOpenCourse={selectCourse} />
-                <ExamCountdown />
+                <div className="flex flex-col md:flex-row md:items-start gap-3 mb-4">
+                    <div className="flex-1 min-w-0">
+                        <ToolsBar onOpenCourse={selectCourse} />
+                    </div>
+                    <div className="md:w-[420px] md:shrink-0 md:ml-auto">
+                        <ExamCountdown />
+                    </div>
+                </div>
                 {loading ? (
                     <div className="text-center text-muted py-20">Yükleniyor...</div>
                 ) : (

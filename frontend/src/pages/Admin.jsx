@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import { ArrowLeft, Users, Trash, ShieldCheck, User } from "@phosphor-icons/react";
+import PomodoroMini from "../components/PomodoroMini";
 
 export default function Admin() {
     const { user } = useAuth();
@@ -54,6 +55,7 @@ export default function Admin() {
                         </h1>
                         <p className="text-xs text-muted">Sitedeki tüm kullanıcılar</p>
                     </div>
+                    <div className="ml-auto"><PomodoroMini /></div>
                 </div>
             </header>
 
