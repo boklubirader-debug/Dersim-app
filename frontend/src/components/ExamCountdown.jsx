@@ -70,7 +70,6 @@ export default function ExamCountdown() {
         setConfig(null); setLabel(""); setDate(""); setEditing(true);
     };
 
-    // Collapsed compact pill mode
     if (config && !editing && collapsed) {
         return (
             <div className="brut-card mb-4 flex items-center justify-between px-3 py-2 gap-3" data-testid="exam-countdown-collapsed"
@@ -83,17 +82,12 @@ export default function ExamCountdown() {
                     </span>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                    <button
-                        onClick={() => setEditing(true)}
-                        className="brut-btn px-2 py-1 rounded-md bg-white text-black text-xs font-bold flex items-center gap-1"
-                        data-testid="countdown-change-btn"
-                    ><PencilSimple size={12} weight="bold" /></button>
-                    <button
-                        onClick={() => setCollapsed(false)}
-                        className="brut-btn px-2 py-1 rounded-md bg-white text-black text-xs font-bold"
-                        aria-label="Genişlet"
-                        data-testid="countdown-expand-btn"
-                    ><CaretDown size={12} weight="bold" /></button>
+                    <button onClick={() => setEditing(true)} className="brut-btn px-2 py-1 rounded-md bg-white text-black text-xs font-bold flex items-center gap-1" data-testid="countdown-change-btn">
+                        <PencilSimple size={12} weight="bold" />
+                    </button>
+                    <button onClick={() => setCollapsed(false)} className="brut-btn px-2 py-1 rounded-md bg-white text-black text-xs font-bold" aria-label="Genişlet" data-testid="countdown-expand-btn">
+                        <CaretDown size={12} weight="bold" />
+                    </button>
                 </div>
             </div>
         );
@@ -103,46 +97,32 @@ export default function ExamCountdown() {
         <div className="brut-card p-4 md:p-5 mb-4" data-testid="exam-countdown"
              style={{ background: "linear-gradient(135deg, #FFE37E 0%, #FFC9B5 55%, #D0C9FF 100%)" }}>
             {config && !editing ? (
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                    <div className="min-w-0">
-                        <div className="tag-pill bg-white mb-1 text-black" data-testid="countdown-label">
-                            <Clock size={12} weight="bold" /> {config.label}
+                <div>
+                    {/* Header row: label/title/date on the left, action icons on the right */}
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="min-w-0 flex-1">
+                            <div className="tag-pill bg-white mb-1 text-black" data-testid="countdown-label">
+                                <Clock size={12} weight="bold" /> {config.label}
+                            </div>
+                            <h3 className="font-display text-xl md:text-2xl font-black leading-tight text-black">
+                                {parts?.negative ? "Sınav tarihi geçti" : "Sınavına kalan süre"}
+                            </h3>
+                            <p className="text-xs text-neutral-800 mt-0.5">
+                                {new Date(config.date).toLocaleString("tr-TR", { dateStyle: "long", timeStyle: "short" })}
+                            </p>
                         </div>
-                        <h3 className="font-display text-xl md:text-2xl font-black leading-tight text-black">
-                            {parts?.negative ? "Sınav tarihi geçti" : "Sınavına kalan süre"}
-                        </h3>
-                        <p className="text-xs text-neutral-800">
-                            {new Date(config.date).toLocaleString("tr-TR", { dateStyle: "long", timeStyle: "short" })}
-                        </p>
+                        <div className="flex gap-1 shrink-0">
+                            <button onClick={() => setCollapsed(true)} className="brut-btn px-2 py-2 rounded-md font-bold text-xs bg-white text-black" data-testid="countdown-collapse-btn" aria-label="Küçült" title="Küçült"><CaretUp size={14} weight="bold" /></button>
+                            <button onClick={() => setEditing(true)} className="brut-btn px-2 py-2 rounded-md font-bold text-xs bg-white text-black" data-testid="countdown-change-btn" aria-label="Düzenle"><PencilSimple size={14} weight="bold" /></button>
+                            <button onClick={clear} className="brut-btn px-2 py-2 rounded-md font-bold text-xs bg-white text-black" data-testid="countdown-clear-btn" aria-label="Sıfırla"><X size={14} weight="bold" /></button>
+                        </div>
                     </div>
-
-                    <div className="flex items-center gap-2" data-testid="countdown-values">
+                    {/* Time boxes row (own row, never overlaps) */}
+                    <div className="grid grid-cols-4 gap-2" data-testid="countdown-values">
                         <TimeBox value={parts?.days ?? 0} label="Gün" />
                         <TimeBox value={pad(parts?.hours ?? 0)} label="Saat" />
-                        <TimeBox value={pad(parts?.minutes ?? 0)} label="Dk" />
-                        <TimeBox value={pad(parts?.seconds ?? 0)} label="Sn" />
-                    </div>
-
-                    <div className="flex gap-1">
-                        <button
-                            onClick={() => setCollapsed(true)}
-                            className="brut-btn px-2 py-2 rounded-md font-bold text-xs bg-white text-black"
-                            data-testid="countdown-collapse-btn"
-                            aria-label="Küçült"
-                            title="Küçült"
-                        ><CaretUp size={14} weight="bold" /></button>
-                        <button
-                            onClick={() => setEditing(true)}
-                            className="brut-btn px-2 py-2 rounded-md font-bold text-xs bg-white text-black"
-                            data-testid="countdown-change-btn"
-                            aria-label="Düzenle"
-                        ><PencilSimple size={14} weight="bold" /></button>
-                        <button
-                            onClick={clear}
-                            className="brut-btn px-2 py-2 rounded-md font-bold text-xs bg-white text-black"
-                            data-testid="countdown-clear-btn"
-                            aria-label="Sıfırla"
-                        ><X size={14} weight="bold" /></button>
+                        <TimeBox value={pad(parts?.minutes ?? 0)} label="Dakika" />
+                        <TimeBox value={pad(parts?.seconds ?? 0)} label="Saniye" />
                     </div>
                 </div>
             ) : (
@@ -193,10 +173,10 @@ function TimeBox({ value, label }) {
     return (
         <div className="flex flex-col items-center">
             <div
-                className="border-2 border-black bg-white text-black rounded-md px-2 py-1 min-w-[44px] text-center font-display font-black text-xl tabular-nums"
-                style={{ boxShadow: "2px 2px 0 0 #1A1A1A" }}
+                className="w-full border-2 border-black bg-white text-black rounded-md py-2 text-center font-display font-black text-2xl md:text-3xl tabular-nums"
+                style={{ boxShadow: "3px 3px 0 0 #1A1A1A" }}
             >{value}</div>
-            <span className="text-[9px] mt-0.5 tracking-widest uppercase font-bold text-neutral-800">{label}</span>
+            <span className="text-[10px] mt-1 tracking-widest uppercase font-bold text-neutral-800">{label}</span>
         </div>
     );
 }

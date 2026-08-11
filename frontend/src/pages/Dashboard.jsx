@@ -99,10 +99,10 @@ export default function Dashboard() {
 
             <main className="max-w-[1400px] mx-auto px-4 md:px-8 py-8">
                 <div className="flex flex-col md:flex-row md:items-start gap-3 mb-4">
-                    <div className="flex-1 min-w-0">
+                    <div className="md:flex-1 min-w-0">
                         <ToolsBar onOpenCourse={selectCourse} />
                     </div>
-                    <div className="md:w-[420px] md:shrink-0 md:ml-auto">
+                    <div className="md:flex-1 md:max-w-[600px] md:ml-auto">
                         <ExamCountdown />
                     </div>
                 </div>

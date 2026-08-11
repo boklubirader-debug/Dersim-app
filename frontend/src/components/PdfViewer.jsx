@@ -53,7 +53,7 @@ export default function PdfViewer({ pdf, onClose }) {
             data-testid="pdf-viewer"
         >
             <div className="brut-card bg-[#FDFBF7] w-full max-w-6xl flex flex-col overflow-hidden">
-                <div className="flex items-center justify-between gap-3 p-3 border-b-2 border-black bg-white">
+                <div className="flex items-center justify-between gap-3 p-3 border-b-2 border-[color:var(--ink)]" style={{background:"var(--surface)"}}>
                     <div className="min-w-0 flex items-center gap-2">
                         <div className="tag-pill" style={{background:"#FFE37E"}}>PDF</div>
                         <p className="font-bold truncate" data-testid="pdf-viewer-title">{pdf.filename}</p>
@@ -62,7 +62,7 @@ export default function PdfViewer({ pdf, onClose }) {
                         <a
                             href={blobUrl || rawUrl}
                             download={pdf.filename}
-                            className="brut-btn px-3 py-2 rounded-md font-bold text-sm bg-white flex items-center gap-1"
+                            className="brut-btn px-3 py-2 rounded-md font-bold text-sm flex items-center gap-1"
                             data-testid="pdf-viewer-download"
                         >
                             <DownloadSimple size={16} weight="bold" /> İndir
@@ -71,14 +71,14 @@ export default function PdfViewer({ pdf, onClose }) {
                             href={blobUrl || rawUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="brut-btn px-3 py-2 rounded-md font-bold text-sm bg-white flex items-center gap-1"
+                            className="brut-btn px-3 py-2 rounded-md font-bold text-sm flex items-center gap-1"
                             data-testid="pdf-viewer-newtab"
                         >
                             <ArrowSquareOut size={16} weight="bold" /> Yeni Sekme
                         </a>
                         <button
                             onClick={onClose}
-                            className="brut-btn px-3 py-2 rounded-md font-bold bg-white"
+                            className="brut-btn px-3 py-2 rounded-md font-bold"
                             aria-label="Kapat"
                             data-testid="pdf-viewer-close"
                         >
@@ -89,7 +89,7 @@ export default function PdfViewer({ pdf, onClose }) {
 
                 <div className="flex-1 bg-neutral-200 min-h-0">
                     {loading && (
-                        <div className="h-full flex items-center justify-center text-neutral-700 gap-2">
+                        <div className="h-full flex items-center justify-center text-muted gap-2">
                             <CircleNotch size={20} weight="bold" className="animate-spin" /> Yükleniyor...
                         </div>
                     )}

@@ -49,7 +49,7 @@ export default function Settings() {
         <div className="min-h-screen">
             <header className="border-b-2 border-[color:var(--ink)] bg-[color:var(--paper)] sticky top-0 z-40">
                 <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
-                    <Link to="/" className="brut-btn px-3 py-2 rounded-md font-bold bg-white flex items-center gap-1" data-testid="settings-back">
+                    <Link to="/" className="brut-btn px-3 py-2 rounded-md font-bold flex items-center gap-1" data-testid="settings-back">
                         <ArrowLeft size={16} weight="bold" /> Geri
                     </Link>
                     <h1 className="font-display text-2xl font-black">Ayarlar</h1>
@@ -154,7 +154,7 @@ export default function Settings() {
 
                 <button
                     onClick={async () => { await logout(); nav("/login"); }}
-                    className="brut-btn px-4 py-2 rounded-md font-bold bg-white flex items-center gap-2"
+                    className="brut-btn px-4 py-2 rounded-md font-bold flex items-center gap-2"
                     data-testid="settings-logout"
                 >
                     <Trash size={16} weight="bold" /> Oturumu Kapat

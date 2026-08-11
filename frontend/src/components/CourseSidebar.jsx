@@ -47,7 +47,7 @@ function SortableCourseItem({ course, active, onSelect, onDelete, onRename, onTo
                 {...attributes}
                 {...listeners}
                 data-testid={`course-drag-${course.id}`}
-                className="cursor-grab active:cursor-grabbing text-neutral-500 hover:text-black"
+                className="cursor-grab active:cursor-grabbing text-muted hover:text-[color:var(--text)]"
                 aria-label="Sürükle"
             >
                 <DotsSixVertical size={20} weight="bold" />
@@ -209,7 +209,7 @@ export default function CourseSidebar({ courses, activeCourseId, onSelect, onCha
             {courses.length === 0 && (
                 <div className="brut-card p-6 text-center" data-testid="course-empty">
                     <p className="font-bold mb-1">Henüz ders yok</p>
-                    <p className="text-sm text-neutral-600">İlk dersini ekleyerek başla.</p>
+                    <p className="text-sm text-muted">İlk dersini ekleyerek başla.</p>
                 </div>
             )}
 
@@ -234,7 +234,7 @@ export default function CourseSidebar({ courses, activeCourseId, onSelect, onCha
                             >Ekle</button>
                             <button
                                 onClick={() => { setAdding(false); setNewName(""); }}
-                                className="brut-btn px-3 py-2 rounded-md font-bold bg-white"
+                                className="brut-btn px-3 py-2 rounded-md font-bold"
                                 data-testid="new-course-cancel-btn"
                             >İptal</button>
                         </div>
@@ -242,7 +242,7 @@ export default function CourseSidebar({ courses, activeCourseId, onSelect, onCha
                 ) : (
                     <button
                         onClick={() => setAdding(true)}
-                        className="brut-btn w-full py-3 rounded-md font-bold flex items-center justify-center gap-2 bg-white"
+                        className="brut-btn w-full py-3 rounded-md font-bold flex items-center justify-center gap-2"
                         data-testid="add-course-btn"
                     >
                         <Plus size={18} weight="bold" /> Yeni Ders Ekle

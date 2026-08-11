@@ -133,7 +133,7 @@ export default function CourseDetail({ course, onCourseUpdate }) {
                         {course.name?.[0]?.toUpperCase() || "?"}
                     </div>
                     <div>
-                        <p className="text-xs tracking-[0.2em] uppercase font-bold text-neutral-500">Aktif Ders</p>
+                        <p className="text-xs tracking-[0.2em] uppercase font-bold text-muted">Aktif Ders</p>
                         <h2 className="font-display text-3xl font-black" data-testid="course-title">{course.name}</h2>
                     </div>
                 </div>
@@ -195,7 +195,7 @@ export default function CourseDetail({ course, onCourseUpdate }) {
                             <p className="font-display text-xl font-bold">
                                 {uploading ? "Yükleniyor..." : "PDF sürükle bırak veya tıkla"}
                             </p>
-                            <p className="text-sm text-neutral-600">En fazla 25MB — birden fazla dosya seçebilirsin</p>
+                            <p className="text-sm text-muted">En fazla 25MB — birden fazla dosya seçebilirsin</p>
                         </div>
                     </div>
 
@@ -214,7 +214,7 @@ export default function CourseDetail({ course, onCourseUpdate }) {
                                         </div>
                                         <div className="min-w-0 flex-1">
                                             <p className="font-bold truncate hover:underline" title={p.filename}>{p.filename}</p>
-                                            <p className="text-xs text-neutral-600">{(p.size / 1024).toFixed(0)} KB · Aç ve oku</p>
+                                            <p className="text-xs text-muted">{(p.size / 1024).toFixed(0)} KB · Aç ve oku</p>
                                         </div>
                                     </button>
                                     <div className="flex gap-2">
@@ -228,7 +228,7 @@ export default function CourseDetail({ course, onCourseUpdate }) {
                                         </button>
                                         <button
                                             onClick={() => deletePdf(p.id)}
-                                            className="brut-btn px-3 py-2 rounded-md font-bold text-red-600 bg-white"
+                                            className="brut-btn px-3 py-2 rounded-md font-bold text-red-600"
                                             data-testid={`pdf-delete-${p.id}`}
                                             aria-label="Sil"
                                         >
@@ -240,7 +240,7 @@ export default function CourseDetail({ course, onCourseUpdate }) {
                         })}
                     </div>
                     {pdfs.length === 0 && (
-                        <p className="text-sm text-neutral-600 pl-1">Henüz PDF yok. Yukarıdan yükleyerek başla.</p>
+                        <p className="text-sm text-muted pl-1">Henüz PDF yok. Yukarıdan yükleyerek başla.</p>
                     )}
                 </div>
             )}
@@ -251,7 +251,7 @@ export default function CourseDetail({ course, onCourseUpdate }) {
 
             {tab === "notes" && (
                 <div className="space-y-2" data-testid="notes-panel">
-                    <p className="text-xs tracking-[0.2em] uppercase font-bold text-neutral-500">Ders Notları</p>
+                    <p className="text-xs tracking-[0.2em] uppercase font-bold text-muted">Ders Notları</p>
                     <RichTextEditor
                         value={notes}
                         onChange={onNotesChange}
@@ -279,7 +279,7 @@ function SaveIndicator({ state }) {
         </div>
     );
     return (
-        <div className="tag-pill bg-white" data-testid="save-indicator-idle">
+        <div className="tag-pill" data-testid="save-indicator-idle">
             <CheckCircle size={14} weight="duotone" /> Tüm değişiklikler kayıtlı
         </div>
     );
@@ -348,7 +348,7 @@ function LinksPanel({ courseId, links, setLinks }) {
                     data-testid="link-description-input"
                 />
                 <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <p className="text-xs text-neutral-600">
+                    <p className="text-xs text-muted">
                         İpucu: YouTube veya Vimeo linki eklersen video ön izlemesi otomatik gösterilir.
                     </p>
                     <button
@@ -369,7 +369,7 @@ function LinksPanel({ courseId, links, setLinks }) {
                 ))}
             </div>
             {links.length === 0 && (
-                <p className="text-sm text-neutral-600 pl-1">Henüz link yok. Yukarıdaki formdan ekleyebilirsin. YouTube veya Vimeo linkleri otomatik olarak video kartı olarak gösterilir.</p>
+                <p className="text-sm text-muted pl-1">Henüz link yok. Yukarıdaki formdan ekleyebilirsin. YouTube veya Vimeo linkleri otomatik olarak video kartı olarak gösterilir.</p>
             )}
         </div>
     );
@@ -441,7 +441,7 @@ function LinkCard({ link, onDelete }) {
                     <Trash size={16} weight="bold" />
                 </button>
             </div>
-            <p className="text-xs text-neutral-500 break-all">{link.url}</p>
+            <p className="text-xs text-muted break-all">{link.url}</p>
             {link.description && <p className="text-sm">{link.description}</p>}
         </div>
     );

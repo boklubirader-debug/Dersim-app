@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { PomodoroProvider } from "./context/PomodoroContext";
+import { MusicProvider } from "./context/MusicContext";
 import AuthPage from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
@@ -33,7 +34,8 @@ function App() {
         <ThemeProvider>
             <AuthProvider>
                 <PomodoroProvider>
-                    <BrowserRouter>
+                    <MusicProvider>
+                        <BrowserRouter>
                         <Toaster position="top-right" richColors closeButton />
                         <Routes>
                             <Route path="/login" element={<PublicOnly><AuthPage mode="login" /></PublicOnly>} />
@@ -46,6 +48,7 @@ function App() {
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                     </BrowserRouter>
+                    </MusicProvider>
                 </PomodoroProvider>
             </AuthProvider>
         </ThemeProvider>

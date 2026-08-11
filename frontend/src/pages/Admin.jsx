@@ -46,7 +46,7 @@ export default function Admin() {
         <div className="min-h-screen">
             <header className="border-b-2 border-[color:var(--ink)] bg-[color:var(--paper)] sticky top-0 z-40">
                 <div className="max-w-5xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
-                    <Link to="/settings" className="brut-btn px-3 py-2 rounded-md font-bold bg-white flex items-center gap-1" data-testid="admin-back">
+                    <Link to="/settings" className="brut-btn px-3 py-2 rounded-md font-bold flex items-center gap-1" data-testid="admin-back">
                         <ArrowLeft size={16} weight="bold" /> Geri
                     </Link>
                     <div>
@@ -116,7 +116,7 @@ export default function Admin() {
                                             {u.id !== user?.id && (
                                                 <button
                                                     onClick={() => del(u.id, u.email)}
-                                                    className="brut-btn px-2 py-1 rounded-md font-bold text-red-600 bg-white text-xs"
+                                                    className="brut-btn px-2 py-1 rounded-md font-bold text-red-600 text-xs"
                                                     data-testid={`admin-delete-user-${u.id}`}
                                                     aria-label="Kullanıcıyı sil"
                                                 >

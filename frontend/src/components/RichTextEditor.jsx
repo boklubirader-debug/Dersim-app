@@ -68,7 +68,8 @@ export default function RichTextEditor({ value, onChange, placeholder = "" }) {
                         <Palette size={16} weight="bold" />
                     </ToolBtn>
                     {showColors && (
-                        <div className="absolute z-20 mt-1 brut-card bg-white p-2 grid grid-cols-6 gap-1 min-w-[190px]">
+                        <div className="absolute z-20 mt-1 brut-card p-2 grid grid-cols-6 gap-1 min-w-[190px]"
+                         style={{background:"var(--surface)"}}>>
                             {TEXT_COLORS.map((c) => (
                                 <button
                                     key={c.value}
@@ -90,7 +91,8 @@ export default function RichTextEditor({ value, onChange, placeholder = "" }) {
                         <Highlighter size={16} weight="bold" />
                     </ToolBtn>
                     {showHighlights && (
-                        <div className="absolute z-20 mt-1 brut-card bg-white p-2 grid grid-cols-6 gap-1 min-w-[190px]">
+                        <div className="absolute z-20 mt-1 brut-card p-2 grid grid-cols-6 gap-1 min-w-[190px]"
+                         style={{background:"var(--surface)"}}>>
                             {HIGHLIGHTS.map((c) => (
                                 <button
                                     key={c.value}
