@@ -297,6 +297,184 @@ async def admin_delete_user(user_id: str, admin=Depends(require_admin)):
     await db.pdfs.delete_many({"user_id": user_id})
     return {"ok": True}
 
+# --- Password Reset ---
+import secrets as _secrets
+
+class ForgotPasswordIn(BaseModel):
+    email: EmailStr
+
+class ResetPasswordIn(BaseModel):
+    token: str
+    new_password: str = Field(min_length=6)
+
+@api_router.post("/auth/forgot-password")
+async def forgot_password(payload: ForgotPasswordIn):
+    email = payload.email.lower()
+    user = await db.users.find_one({"email": email})
+    # Always return same message to avoid email enumeration
+    if user:
+        token = _secrets.token_urlsafe(32)
+        expires = datetime.now(timezone.utc) + timedelta(hours=1)
+        await db.password_reset_tokens.insert_one({
+            "token": token,
+            "user_id": str(user["_id"]),
+            "expires_at": expires,
+            "used": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+        frontend = os.environ.get("FRONTEND_URL", "").rstrip("/")
+        link = f"{frontend}/reset-password?token={token}" if frontend else f"/reset-password?token={token}"
+        logger.info(f"[PASSWORD RESET] {email} -> {link}")
+    return {"ok": True, "message": "E-postan sistemde varsa şifre sıfırlama bağlantısı oluşturuldu"}
+
+@api_router.post("/auth/reset-password")
+async def reset_password(payload: ResetPasswordIn):
+    doc = await db.password_reset_tokens.find_one({"token": payload.token, "used": False})
+    if not doc:
+        raise HTTPException(status_code=400, detail="Geçersiz veya kullanılmış bağlantı")
+    if doc.get("expires_at") and doc["expires_at"] < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Bağlantı süresi dolmuş")
+    await db.users.update_one(
+        {"_id": ObjectId(doc["user_id"])},
+        {"$set": {"password_hash": hash_password(payload.new_password)}},
+    )
+    await db.password_reset_tokens.update_one({"_id": doc["_id"]}, {"$set": {"used": True}})
+    return {"ok": True}
+
+# --- Study Stats ---
+def _start_of_week_utc(now: datetime) -> datetime:
+    monday = now - timedelta(days=now.weekday())
+    return monday.replace(hour=0, minute=0, second=0, microsecond=0)
+
+def _parse_iso(s):
+    if not s:
+        return None
+    try:
+        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+@api_router.get("/stats/weekly")
+async def weekly_stats(user=Depends(get_current_user)):
+    now = datetime.now(timezone.utc)
+    this_week_start = _start_of_week_utc(now)
+    last_week_start = this_week_start - timedelta(days=7)
+
+    def in_range(ts, start, end):
+        d = _parse_iso(ts)
+        return d is not None and start <= d < end
+
+    courses = [c async for c in db.courses.find({"user_id": user["id"]})]
+    pdfs = [p async for p in db.pdfs.find({"user_id": user["id"], "is_deleted": {"$ne": True}})]
+    links = [l async for l in db.links.find({"user_id": user["id"]})]
+
+    def bucket(items, field, start, end):
+        return sum(1 for i in items if in_range(i.get(field), start, end))
+
+    this_courses = bucket(courses, "updated_at", this_week_start, now + timedelta(days=1))
+    this_courses_completed = sum(
+        1 for c in courses
+        if c.get("completed") and in_range(c.get("updated_at"), this_week_start, now + timedelta(days=1))
+    )
+    this_pdfs = bucket(pdfs, "created_at", this_week_start, now + timedelta(days=1))
+    this_links = bucket(links, "created_at", this_week_start, now + timedelta(days=1))
+
+    last_courses = bucket(courses, "updated_at", last_week_start, this_week_start)
+    last_courses_completed = sum(
+        1 for c in courses
+        if c.get("completed") and in_range(c.get("updated_at"), last_week_start, this_week_start)
+    )
+    last_pdfs = bucket(pdfs, "created_at", last_week_start, this_week_start)
+    last_links = bucket(links, "created_at", last_week_start, this_week_start)
+
+    def total(cs, ps, ls):
+        return cs + ps + ls
+    this_total = total(this_courses, this_pdfs, this_links) + this_courses_completed
+    last_total = total(last_courses, last_pdfs, last_links) + last_courses_completed
+    if last_total == 0:
+        delta_pct = 100 if this_total > 0 else 0
+    else:
+        delta_pct = round(((this_total - last_total) / last_total) * 100)
+
+    # Streak: consecutive days ending today with any activity
+    activity_days = set()
+    for coll in (courses, pdfs, links):
+        for item in coll:
+            for f in ("updated_at", "created_at"):
+                d = _parse_iso(item.get(f))
+                if d:
+                    activity_days.add(d.date())
+    today = now.date()
+    streak = 0
+    day = today
+    while day in activity_days:
+        streak += 1
+        day = day - timedelta(days=1)
+
+    # Per-day counts for the last 7 days (sparkline)
+    daily = []
+    for i in range(6, -1, -1):
+        d = today - timedelta(days=i)
+        count = 0
+        for coll in (courses, pdfs, links):
+            for item in coll:
+                for f in ("updated_at", "created_at"):
+                    ts = _parse_iso(item.get(f))
+                    if ts and ts.date() == d:
+                        count += 1
+                        break
+        daily.append({"date": d.isoformat(), "count": count})
+
+    return {
+        "this_week": {
+            "courses_touched": this_courses,
+            "courses_completed": this_courses_completed,
+            "pdfs_added": this_pdfs,
+            "links_added": this_links,
+            "total": this_total,
+        },
+        "last_week": {
+            "courses_touched": last_courses,
+            "courses_completed": last_courses_completed,
+            "pdfs_added": last_pdfs,
+            "links_added": last_links,
+            "total": last_total,
+        },
+        "delta_pct": delta_pct,
+        "streak_days": streak,
+        "daily": daily,
+    }
+
+# --- Spaced Repetition Review ---
+@api_router.get("/review/due")
+async def review_due(user=Depends(get_current_user)):
+    now = datetime.now(timezone.utc)
+    items = []
+    async for c in db.courses.find({"user_id": user["id"]}):
+        notes = (c.get("notes") or "").strip()
+        if not notes or notes in ("<p></p>", "<br>", "<div></div>"):
+            continue
+        updated = _parse_iso(c.get("updated_at"))
+        if not updated:
+            continue
+        age_days = (now - updated).days
+        # spaced repetition schedule: 1, 3, 7 days
+        for target in (1, 3, 7):
+            if age_days >= target:
+                items.append({
+                    "course_id": str(c["_id"]),
+                    "name": c.get("name", ""),
+                    "color": c.get("color", "#FFE37E"),
+                    "interval_days": target,
+                    "age_days": age_days,
+                    "updated_at": c.get("updated_at"),
+                })
+                break
+    # Sort by highest interval first (oldest)
+    items.sort(key=lambda x: -x["interval_days"])
+    return {"items": items, "generated_at": now.isoformat()}
+
+
 # --- Courses ---
 @api_router.get("/courses")
 async def list_courses(user=Depends(get_current_user)):
@@ -507,6 +685,8 @@ async def startup():
     await db.courses.create_index([("user_id", 1), ("position", 1)])
     await db.links.create_index([("user_id", 1), ("course_id", 1)])
     await db.pdfs.create_index([("user_id", 1), ("course_id", 1)])
+    await db.password_reset_tokens.create_index("token", unique=True)
+    await db.password_reset_tokens.create_index("expires_at", expireAfterSeconds=0)
     # Seed admin
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@dersim.app").lower()
     admin_password = os.environ.get("ADMIN_PASSWORD", "Admin123!")

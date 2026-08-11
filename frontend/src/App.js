@@ -7,6 +7,7 @@ import AuthPage from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
+import { ForgotPassword, ResetPassword } from "./pages/Password";
 
 function Protected({ children }) {
     const { user, checked } = useAuth();
@@ -35,6 +36,8 @@ function App() {
                     <Routes>
                         <Route path="/login" element={<PublicOnly><AuthPage mode="login" /></PublicOnly>} />
                         <Route path="/register" element={<PublicOnly><AuthPage mode="register" /></PublicOnly>} />
+                        <Route path="/forgot-password" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
+                        <Route path="/reset-password" element={<PublicOnly><ResetPassword /></PublicOnly>} />
                         <Route path="/" element={<Protected><Dashboard /></Protected>} />
                         <Route path="/settings" element={<Protected><Settings /></Protected>} />
                         <Route path="/admin" element={<Protected><Admin /></Protected>} />

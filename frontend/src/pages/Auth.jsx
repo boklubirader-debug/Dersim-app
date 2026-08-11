@@ -93,7 +93,14 @@ export default function AuthPage({ mode = "login" }) {
                             />
                         </div>
                         <div>
-                            <label className="text-xs tracking-widest uppercase font-bold text-muted">Şifre</label>
+                            <div className="flex items-center justify-between">
+                                <label className="text-xs tracking-widest uppercase font-bold text-muted">Şifre</label>
+                                {mode === "login" && (
+                                    <Link to="/forgot-password" className="text-xs font-bold underline underline-offset-4 text-muted hover:text-[color:var(--text)]" data-testid="forgot-password-link">
+                                        Şifremi unuttum
+                                    </Link>
+                                )}
+                            </div>
                             <input
                                 data-testid="auth-password-input"
                                 type="password"

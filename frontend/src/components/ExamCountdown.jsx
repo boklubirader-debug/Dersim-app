@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Clock, X, PencilSimple } from "@phosphor-icons/react";
+import { Clock, X, PencilSimple, CaretUp, CaretDown } from "@phosphor-icons/react";
 
 const STORAGE_KEY = "dersim.exam.v2";
+const COLLAPSED_KEY = "dersim.exam.collapsed";
 
 function pad(n) { return String(n).padStart(2, "0"); }
 
@@ -17,23 +18,21 @@ function useNow(interval = 1000) {
 function loadSaved() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return null;
-        return JSON.parse(raw);
-    } catch {
-        return null;
-    }
+        return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
 }
 
 export default function ExamCountdown() {
     const [config, setConfig] = useState(loadSaved);
     const [editing, setEditing] = useState(false);
+    const [collapsed, setCollapsed] = useState(() => {
+        try { return localStorage.getItem(COLLAPSED_KEY) === "1"; } catch { return false; }
+    });
     const [label, setLabel] = useState(config?.label || "");
     const [date, setDate] = useState(() => {
         if (!config?.date) return "";
-        // convert stored ISO to local datetime-local value
         const d = new Date(config.date);
-        const off = d.getTimezoneOffset() * 60000;
-        return new Date(d.getTime() - off).toISOString().slice(0, 16);
+        return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     });
     const now = useNow(1000);
 
@@ -41,11 +40,11 @@ export default function ExamCountdown() {
         if (!config && !editing) setEditing(true);
     }, [config, editing]);
 
-    const diff = useMemo(() => {
-        if (!config) return null;
-        return new Date(config.date).getTime() - now.getTime();
-    }, [config, now]);
+    useEffect(() => {
+        try { localStorage.setItem(COLLAPSED_KEY, collapsed ? "1" : "0"); } catch {}
+    }, [collapsed]);
 
+    const diff = config ? new Date(config.date).getTime() - now.getTime() : null;
     const parts = useMemo(() => {
         if (diff == null) return null;
         const abs = Math.abs(diff);
@@ -60,8 +59,7 @@ export default function ExamCountdown() {
 
     const save = () => {
         if (!label.trim() || !date) return;
-        const iso = new Date(date).toISOString();
-        const next = { label: label.trim(), date: iso };
+        const next = { label: label.trim(), date: new Date(date).toISOString() };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
         setConfig(next);
         setEditing(false);
@@ -69,72 +67,101 @@ export default function ExamCountdown() {
 
     const clear = () => {
         localStorage.removeItem(STORAGE_KEY);
-        setConfig(null);
-        setLabel("");
-        setDate("");
-        setEditing(true);
+        setConfig(null); setLabel(""); setDate(""); setEditing(true);
     };
 
+    // Collapsed compact pill mode
+    if (config && !editing && collapsed) {
+        return (
+            <div className="brut-card mb-4 flex items-center justify-between px-3 py-2 gap-3" data-testid="exam-countdown-collapsed"
+                 style={{ background: "linear-gradient(90deg, #FFE37E 0%, #FFC9B5 50%, #D0C9FF 100%)" }}>
+                <div className="flex items-center gap-2 min-w-0 text-black">
+                    <Clock size={16} weight="bold" />
+                    <span className="text-xs uppercase tracking-widest font-bold truncate">{config.label}</span>
+                    <span className="font-display font-black tabular-nums">
+                        {parts?.negative ? "Bitti" : `${parts.days}g ${pad(parts.hours)}s ${pad(parts.minutes)}dk`}
+                    </span>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                    <button
+                        onClick={() => setEditing(true)}
+                        className="brut-btn px-2 py-1 rounded-md bg-white text-black text-xs font-bold flex items-center gap-1"
+                        data-testid="countdown-change-btn"
+                    ><PencilSimple size={12} weight="bold" /></button>
+                    <button
+                        onClick={() => setCollapsed(false)}
+                        className="brut-btn px-2 py-1 rounded-md bg-white text-black text-xs font-bold"
+                        aria-label="Genişlet"
+                        data-testid="countdown-expand-btn"
+                    ><CaretDown size={12} weight="bold" /></button>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="brut-card p-5 md:p-6 mb-8" data-testid="exam-countdown"
-             style={{background:"linear-gradient(135deg, #FFE37E 0%, #FFC9B5 55%, #D0C9FF 100%)"}}>
+        <div className="brut-card p-4 md:p-5 mb-4" data-testid="exam-countdown"
+             style={{ background: "linear-gradient(135deg, #FFE37E 0%, #FFC9B5 55%, #D0C9FF 100%)" }}>
             {config && !editing ? (
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div className="min-w-0">
-                        <div className="tag-pill bg-white mb-2 text-black" data-testid="countdown-label">
-                            <Clock size={14} weight="bold" /> {config.label}
+                        <div className="tag-pill bg-white mb-1 text-black" data-testid="countdown-label">
+                            <Clock size={12} weight="bold" /> {config.label}
                         </div>
-                        <h3 className="font-display text-2xl sm:text-3xl font-black leading-tight text-black">
-                            {parts?.negative ? "Sınav tarihi geçti, tebrikler!" : "Sınavına kalan süre"}
+                        <h3 className="font-display text-xl md:text-2xl font-black leading-tight text-black">
+                            {parts?.negative ? "Sınav tarihi geçti" : "Sınavına kalan süre"}
                         </h3>
-                        <p className="text-sm mt-1 text-neutral-800">
+                        <p className="text-xs text-neutral-800">
                             {new Date(config.date).toLocaleString("tr-TR", { dateStyle: "long", timeStyle: "short" })}
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-2 sm:gap-3" data-testid="countdown-values">
+                    <div className="flex items-center gap-2" data-testid="countdown-values">
                         <TimeBox value={parts?.days ?? 0} label="Gün" />
                         <TimeBox value={pad(parts?.hours ?? 0)} label="Saat" />
-                        <TimeBox value={pad(parts?.minutes ?? 0)} label="Dakika" />
-                        <TimeBox value={pad(parts?.seconds ?? 0)} label="Saniye" />
+                        <TimeBox value={pad(parts?.minutes ?? 0)} label="Dk" />
+                        <TimeBox value={pad(parts?.seconds ?? 0)} label="Sn" />
                     </div>
 
-                    <div className="flex md:flex-col gap-2">
+                    <div className="flex gap-1">
                         <button
-                            className="brut-btn px-3 py-2 rounded-md font-bold text-xs bg-white text-black flex items-center gap-1"
+                            onClick={() => setCollapsed(true)}
+                            className="brut-btn px-2 py-2 rounded-md font-bold text-xs bg-white text-black"
+                            data-testid="countdown-collapse-btn"
+                            aria-label="Küçült"
+                            title="Küçült"
+                        ><CaretUp size={14} weight="bold" /></button>
+                        <button
                             onClick={() => setEditing(true)}
+                            className="brut-btn px-2 py-2 rounded-md font-bold text-xs bg-white text-black"
                             data-testid="countdown-change-btn"
-                        >
-                            <PencilSimple size={14} weight="bold" /> Düzenle
-                        </button>
+                            aria-label="Düzenle"
+                        ><PencilSimple size={14} weight="bold" /></button>
                         <button
-                            className="brut-btn px-3 py-2 rounded-md font-bold text-xs bg-white text-black"
                             onClick={clear}
+                            className="brut-btn px-2 py-2 rounded-md font-bold text-xs bg-white text-black"
                             data-testid="countdown-clear-btn"
                             aria-label="Sıfırla"
-                        >
-                            <X size={14} weight="bold" />
-                        </button>
+                        ><X size={14} weight="bold" /></button>
                     </div>
                 </div>
             ) : (
                 <div>
-                    <div className="mb-4">
+                    <div className="mb-3">
                         <p className="text-xs tracking-[0.2em] uppercase font-bold text-neutral-800">Geri Sayım</p>
-                        <h3 className="font-display text-2xl font-black text-black">Sınav adı ve tarihini gir</h3>
-                        <p className="text-sm text-neutral-800 mt-1">Örn: "KPSS Ön Lisans" — 8 Kasım 2026 10:15</p>
+                        <h3 className="font-display text-xl font-black text-black">Sınav adı ve tarihini gir</h3>
                     </div>
                     <div className="grid sm:grid-cols-3 gap-2">
                         <input
-                            className="brut-input sm:col-span-1"
-                            placeholder="Sınav adı"
+                            className="brut-input"
+                            placeholder="Sınav adı (örn. KPSS Ön Lisans)"
                             value={label}
                             onChange={(e) => setLabel(e.target.value)}
                             data-testid="custom-exam-label"
                         />
                         <input
                             type="datetime-local"
-                            className="brut-input sm:col-span-1"
+                            className="brut-input"
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
                             data-testid="custom-exam-date"
@@ -142,7 +169,7 @@ export default function ExamCountdown() {
                         <div className="flex gap-2">
                             <button
                                 className="brut-btn px-3 py-2 rounded-md font-bold flex-1"
-                                style={{background: "#A7E8D0", color: "#1A1A1A"}}
+                                style={{ background: "#A7E8D0", color: "#1A1A1A" }}
                                 onClick={save}
                                 data-testid="custom-exam-save"
                                 disabled={!label.trim() || !date}
@@ -166,12 +193,10 @@ function TimeBox({ value, label }) {
     return (
         <div className="flex flex-col items-center">
             <div
-                className="border-2 border-black bg-white text-black rounded-md px-2 sm:px-3 py-1 sm:py-2 min-w-[52px] sm:min-w-[64px] text-center font-display font-black text-2xl sm:text-3xl tabular-nums"
-                style={{boxShadow:"3px 3px 0 0 #1A1A1A"}}
-            >
-                {value}
-            </div>
-            <span className="text-[10px] sm:text-xs mt-1 tracking-widest uppercase font-bold text-neutral-800">{label}</span>
+                className="border-2 border-black bg-white text-black rounded-md px-2 py-1 min-w-[44px] text-center font-display font-black text-xl tabular-nums"
+                style={{ boxShadow: "2px 2px 0 0 #1A1A1A" }}
+            >{value}</div>
+            <span className="text-[9px] mt-0.5 tracking-widest uppercase font-bold text-neutral-800">{label}</span>
         </div>
     );
 }

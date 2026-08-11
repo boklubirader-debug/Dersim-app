@@ -6,6 +6,7 @@ import { useTheme } from "../context/ThemeContext";
 import CourseSidebar from "../components/CourseSidebar";
 import CourseDetail from "../components/CourseDetail";
 import ExamCountdown from "../components/ExamCountdown";
+import ToolsBar from "../components/ToolsBar";
 import { toast } from "sonner";
 import { BookOpen, SignOut, Gear, Moon, Sun, ShieldCheck } from "@phosphor-icons/react";
 
@@ -95,6 +96,7 @@ export default function Dashboard() {
             </header>
 
             <main className="max-w-[1400px] mx-auto px-4 md:px-8 py-8">
+                <ToolsBar onOpenCourse={selectCourse} />
                 <ExamCountdown />
                 {loading ? (
                     <div className="text-center text-muted py-20">Yükleniyor...</div>
